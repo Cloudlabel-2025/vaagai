@@ -1,0 +1,26 @@
+.app-nav nav a {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 55px;
+  padding: 9px 13px;
+  border-radius: 8px;
+  background: transparent;
+  color: #bdd3db;
+  font-size: .875rem;
+  font-weight: 650;
+  line-height: 1.4;
+  text-align: left;
+  text-decoration: none;
+}
+.app-nav nav a small {
+  display: block;
+  margin-top: 2px;
+  color: #8fb1bd;
+  font-size: 12px;
+  font-weight: 400;
+}
+.app-nav nav a.active { background: #ddf8f7; color: #103c47; }
+.app-nav nav a.active small { color: #426c77; }
+.app-nav nav a:not(.active):hover { background: #224a57; }

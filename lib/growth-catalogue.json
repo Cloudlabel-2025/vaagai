@@ -1,0 +1,264 @@
+[
+  {
+    "id": "M001",
+    "pattern": "Creates a routine document manually without considering suitable AI help",
+    "timeType": "Avoidable",
+    "attribute": "C2D",
+    "guidance": "Review whether AI was available and useful, including validation time.",
+    "supporting": [
+      "C2B"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Identify suitable AI steps and verify the result"
+  },
+  {
+    "id": "M002",
+    "pattern": "Repeats preventable document formatting or copying",
+    "timeType": "Avoidable",
+    "attribute": "C2D",
+    "guidance": "Check tooling, instructions and opportunity for automation.",
+    "supporting": [
+      "C2B"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Choose and verify a more efficient method"
+  },
+  {
+    "id": "M003",
+    "pattern": "Cannot explain the task or a completed decision clearly",
+    "timeType": "Learning",
+    "attribute": "C1A",
+    "guidance": "Check understanding separately before confirming a communication gap.",
+    "supporting": [
+      "C2A",
+      "C2B"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Explain one decision using evidence"
+  },
+  {
+    "id": "M004",
+    "pattern": "Misses agreed progress communication",
+    "timeType": "Avoidable",
+    "attribute": "C1A",
+    "guidance": "Confirm that the update requirement and channel were understood.",
+    "supporting": [
+      "C3A"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Practise a concise progress update"
+  },
+  {
+    "id": "M005",
+    "pattern": "Does not check understanding after an instruction",
+    "timeType": "Avoidable",
+    "attribute": "C1A",
+    "guidance": "Observe listening and restatement, then test the requirement.",
+    "supporting": [
+      "C2C"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Restate the agreed requirement"
+  },
+  {
+    "id": "M006",
+    "pattern": "Does not seek support at the agreed escalation point",
+    "timeType": "Blocked",
+    "attribute": "C1B",
+    "guidance": "Ask whether confidence with people or institutions contributed.",
+    "supporting": [
+      "C1A"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Practise asking for specific support"
+  },
+  {
+    "id": "M007",
+    "pattern": "Does not raise a relevant question with a mentor or authority",
+    "timeType": "Learning",
+    "attribute": "C1B",
+    "guidance": "Use the learner explanation to establish the reason.",
+    "supporting": [
+      "C2C"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Practise presenting a question"
+  },
+  {
+    "id": "M008",
+    "pattern": "Cannot identify a suitable next learning or opportunity step",
+    "timeType": "Learning",
+    "attribute": "C1C",
+    "guidance": "Check knowledge of available options and ability to choose.",
+    "supporting": [
+      "C2B"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Identify a feasible next opportunity step"
+  },
+  {
+    "id": "M009",
+    "pattern": "Cannot explain the cost or benefit of a chosen learning opportunity",
+    "timeType": "Learning",
+    "attribute": "C1C",
+    "guidance": "Review agency and decision reasoning in context.",
+    "supporting": [
+      "C2B"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Compare an opportunity with stated needs"
+  },
+  {
+    "id": "M010",
+    "pattern": "Learner reports fear of mistakes prevents an agreed first step",
+    "timeType": "Learning",
+    "attribute": "C1D",
+    "guidance": "Use the learner report; do not infer emotional state from delay alone.",
+    "supporting": [
+      "C1A"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Agree a manageable first step and reflect"
+  },
+  {
+    "id": "M011",
+    "pattern": "Learner reports difficulty resuming after a setback or feedback",
+    "timeType": "Learning",
+    "attribute": "C1D",
+    "guidance": "Check circumstances and support before attribution.",
+    "supporting": [
+      "C3A"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Review feedback and agree the next step"
+  },
+  {
+    "id": "M012",
+    "pattern": "Cannot identify an organisation or work-structure relationship",
+    "timeType": "Learning",
+    "attribute": "C2A",
+    "guidance": "Test subject understanding using a small source example.",
+    "supporting": [
+      "C1A",
+      "C2B"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Trace and explain one relationship"
+  },
+  {
+    "id": "M013",
+    "pattern": "Uses an incorrect subject concept or definition",
+    "timeType": "Learning",
+    "attribute": "C2A",
+    "guidance": "Record the specific concept and expected explanation.",
+    "supporting": [
+      "C2B"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Revisit and demonstrate the concept"
+  },
+  {
+    "id": "M014",
+    "pattern": "Attempts a solution without checking alternatives or evidence",
+    "timeType": "Avoidable",
+    "attribute": "C2B",
+    "guidance": "Review reasoning and the available information.",
+    "supporting": [
+      "C2C"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Compare alternatives and justify a decision"
+  },
+  {
+    "id": "M015",
+    "pattern": "Accepts a result without validation",
+    "timeType": "Avoidable",
+    "attribute": "C2B",
+    "guidance": "Identify the missing validation and its consequence.",
+    "supporting": [
+      "C2A"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Validate against an independent source"
+  },
+  {
+    "id": "M016",
+    "pattern": "Starts work while a material requirement remains unclear",
+    "timeType": "Avoidable",
+    "attribute": "C2C",
+    "guidance": "Record the unanswered requirement and affected people.",
+    "supporting": [
+      "C1A"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Clarify and confirm the requirement"
+  },
+  {
+    "id": "M017",
+    "pattern": "Does not identify who is affected by a proposed change",
+    "timeType": "Learning",
+    "attribute": "C2C",
+    "guidance": "Review people, process and requirement understanding.",
+    "supporting": [
+      "C2A"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Map the affected people and process"
+  },
+  {
+    "id": "M018",
+    "pattern": "Uses an AI answer without checking assumptions or correctness",
+    "timeType": "Avoidable",
+    "attribute": "C2D",
+    "guidance": "Record the unchecked output and validation needed.",
+    "supporting": [
+      "C2B"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Check and accept or reject AI suggestions"
+  },
+  {
+    "id": "M019",
+    "pattern": "Repeatedly omits agreed thinking practice after adjusted opportunities",
+    "timeType": "Avoidable",
+    "attribute": "C3A",
+    "guidance": "Use repeated evidence and agreed allowances, not one difficult day.",
+    "supporting": [
+      "C2B"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Resume an agreed thinking-practice routine"
+  },
+  {
+    "id": "M020",
+    "pattern": "Repeatedly omits agreed subject practice after adjusted opportunities",
+    "timeType": "Avoidable",
+    "attribute": "C3B",
+    "guidance": "Use repeated evidence and agreed allowances.",
+    "supporting": [
+      "C2A"
+    ],
+    "exerciseUrl": "",
+    "nextStep": "Resume an agreed subject-practice routine"
+  },
+  {
+    "id": "M021",
+    "pattern": "Waiting for environment access or a system response",
+    "timeType": "Blocked",
+    "attribute": "",
+    "guidance": "External blocker; attribute only if a reviewed learner action contributed.",
+    "supporting": [],
+    "exerciseUrl": "",
+    "nextStep": "Record and escalate the blocker"
+  },
+  {
+    "id": "M022",
+    "pattern": "Waiting for source data or a client / mentor decision",
+    "timeType": "Blocked",
+    "attribute": "",
+    "guidance": "External blocker; no automatic skill attribution.",
+    "supporting": [],
+    "exerciseUrl": "",
+    "nextStep": "Record the missing input and request it"
+  }
+]

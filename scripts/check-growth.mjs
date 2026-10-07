@@ -1,0 +1,62 @@
+import {createRequire} from 'node:module';
+import {readFileSync,readdirSync} from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+const require=createRequire(import.meta.url),ts=require('typescript');
+const transpile=f=>ts.transpileModule(readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const sandbox={exports:{},Date};vm.runInNewContext(transpile('lib/growth.ts'),sandbox);const g=sandbox.exports;
+const defaultsSandbox={exports:{},require:s=>s.endsWith('.json')?{default:JSON.parse(readFileSync('lib/'+s.slice(2),'utf8'))}:null};vm.runInNewContext(transpile('lib/growth-defaults.ts'),defaultsSandbox);const initial=defaultsSandbox.exports.initialGrowthState;
+let state=initial();
+assert.equal(g.riverEnd('2026-10-03'),'2027-01-02');assert.equal(g.weekCount('2026-10-03'),14);assert.equal(g.riverEnd('2026-01-31'),'2026-04-29');
+assert.equal(JSON.stringify(g.reviewDates('2026-10-03')),JSON.stringify(['2026-10-03','2026-10-17','2026-11-02','2026-11-17','2026-12-02','2026-12-17','2027-01-02']));
+assert.equal(g.canManageGrowth({email:'sasiabinesh292@gmail.com',role:'owner'}),false);assert.equal(g.canManageGrowth({email:'mechpremothan@gmail.com',role:'cohort_leader'}),true);
+assert.equal(g.ranked(state,'Abinesh','2026-10-06').complete,false);
+const baseline=g.emptyReview('Abinesh',0,'2026-10-03');baseline.status='Confirmed';baseline.evidence='Life and Path reviewed with actual examples';const vals=[2,3,4,2.5,1,1.5,2,0.5,3.5,5];baseline.grades.forEach((r,i)=>{r.life=vals[i];r.path=vals[i]+(vals[i]<5?0.1:0);});state.reviews.push(baseline);
+let r=g.ranked(state,'Abinesh','2026-10-06');assert.equal(JSON.stringify(r.weakest.map(r=>r.attribute)),JSON.stringify(['C2D','C2A','C2B','C1A','C2C','C1D','C1B','C3A']));assert.equal(JSON.stringify(r.targets.map(r=>r.attribute)),JSON.stringify(['C1A','C1D','C1B']));assert.equal(r.weekend.attribute,'C1A');
+assert.equal(g.ranked(state,'Stephen','2026-10-06').complete,false);
+baseline.grades[0].life=0;assert.equal(g.ranked(state,'Abinesh','2026-10-06').weakest[0].grade,0);baseline.grades[0].life=null;assert.equal(g.ranked(state,'Abinesh','2026-10-06').complete,false);baseline.grades[0].life=2;
+state.settings.method='Weighted';assert.equal(g.ranked(state,'Abinesh','2026-10-06').complete,false);state.settings.lifeShare=.25;assert.ok(Math.abs(g.ranked(state,'Abinesh','2026-10-06').current[0].grade-2.075)<.00001);state.settings.method='Lower grade';
+const next=structuredClone(baseline);next.id='Abinesh__1';next.stage=1;next.date='2026-10-17';next.grades.forEach(x=>{x.life=4;x.path=4;});state.reviews.push(next);assert.equal(g.ranked(state,'Abinesh','2026-10-09').current[0].grade,2);assert.equal(g.ranked(state,'Abinesh','2026-10-18').current[0].grade,4);
+const event={...state.incidents[0],id:'isolated',date:'2026-10-06',reportedCount:2,affected:['Abinesh','Stephen'],status:'Reviewed'};state.incidents=[event];assert.equal(g.incidentMinutes(state,'Abinesh','2026-10-06').avoidable,240);assert.equal(g.incidentMinutes(state,'Surjith','2026-10-06').avoidable,0);event.reportedCount=3;assert.equal(g.incidentMinutes(state,'Abinesh','2026-10-06').pending,240);assert.equal(g.incidentMinutes(state,'Abinesh','2026-10-06').avoidable,0);event.reportedCount=2;
+const day=g.emptyDay('2026-10-06');Object.assign(day.rows[0],{scheduled:480,breaks:60,meetings:30,productive:100,learning:50});assert.equal(g.dailyBalance(state,day.date,day.rows[0]).gap,0);
+console.log('Passed: date windows, six reviews, missing versus zero, weakest eight, C1-first priorities, weakest weekend, weighted formulas, player isolation, historical cutoffs, shared incident hours, and daily balance.');
+
+const React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
+const js=ts.transpileModule(readFileSync('app/growth-tracker.tsx','utf8')+'\nexport const qaComponents={Dashboard,DailyEntry,Incidents,Reviews,PracticeEditor,CatalogueDesk,Setup,TasksDesk};',{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+const jsxSandbox={exports:{},require:s=>s==='../lib/growth'?g:s==='../lib/jaguar'?{istDate:()=> '2026-10-06'}:s==='./growth.css'?{}:require(s),Date,structuredClone,crypto:require('node:crypto').webcrypto};vm.runInNewContext(js,jsxSandbox);
+const renderState=initial();renderState.reviews.push(structuredClone(baseline));const props={state:renderState,player:'Abinesh',asOf:'2026-10-06',date:'2026-10-06',week:1,save:async()=>true,busy:false,projectTasks:[]};
+for(const [name,Component] of Object.entries(jsxSandbox.exports.qaComponents)){const markup=renderToStaticMarkup(React.createElement(Component,props));assert.ok(markup.length>300,name+' rendered');assert.doesNotMatch(markup,/NaN|undefined/,name+' renders valid text');if(name==='Dashboard'){assert.match(markup,/Growth factor/);assert.match(markup,/C2D/);assert.match(markup,/WEEKEND FOCUS/);}if(name==='DailyEntry'){assert.match(markup,/Save all four players/);} }
+console.log('Passed: all eight tracker sections render with valid forms, dashboard factor selection, dates and values.');
+
+const wranglerRequire=createRequire(require.resolve('wrangler/package.json')),{Miniflare,Log,LogLevel}=wranglerRequire('miniflare');
+const walk=dir=>readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(dir,e.name)):e.name.endsWith('.js')?[path.join(dir,e.name)]:[]);
+const modulePaths=walk(path.resolve('dist/server')),entry=path.resolve('dist/server/index.js');modulePaths.splice(modulePaths.indexOf(entry),1);modulePaths.unshift(entry);
+const mf=new Miniflare({modules:modulePaths.map(p=>({type:'ESModule',path:p})),modulesRoot:path.resolve('dist/server'),compatibilityDate:'2026-05-15',compatibilityFlags:['nodejs_compat'],d1Databases:{DB:'test-growth'},r2Buckets:{BUCKET:'test-growth-files'},log:new Log(LogLevel.ERROR)});
+const owner='lavanyabalaji123@gmail.com',leader='mechpremothan@gmail.com',rider='sasiabinesh292@gmail.com';
+try{
+ const db=await mf.getD1Database('DB');for(const file of readdirSync('drizzle').filter(f=>f.endsWith('.sql')).sort())for(const statement of readFileSync('drizzle/'+file,'utf8').split('--> statement-breakpoint').map(s=>s.trim()).filter(Boolean))await db.prepare(statement).run();
+ const request=async(email,body,url='/api/growth',origin)=>{const headers=email?{'oai-authenticated-user-id':'qa-'+email,'oai-authenticated-user-email':email}:{};if(body)headers['Content-Type']='application/json';if(origin)headers.Origin=origin;const r=await mf.dispatchFetch('http://jaguar.test'+url,{method:body?'POST':'GET',headers,body:body?JSON.stringify(body):undefined});return {status:r.status,data:await r.json(),headers:r.headers};};
+ const ok=async(email,body,url)=>{const r=await request(email,body,url);assert.equal(r.status,200,JSON.stringify(r.data));return r.data;};
+ assert.equal((await request(null)).status,401);assert.equal((await request(rider)).status,403);assert.equal((await request('rishidharshini@cloudheard.org')).status,403);
+ let packet=await ok(owner);assert.equal(packet.state.reviews.length,0);assert.equal(packet.state.catalogue.length,22);assert.equal(packet.state.incidents[0].affected.length,0);assert.equal(packet.revision,0);assert.match((await request(owner)).headers.get('cache-control'),/no-store/);
+ const post=async(op,data,who=owner)=>{packet=await ok(who,{op,revision:packet.revision,data});return packet;};
+ assert.equal((await request(rider,{op:'settings',revision:0,data:packet.state.settings})).status,403);assert.equal((await request(owner,{op:'settings',revision:0,data:packet.state.settings},'/api/growth','https://other.example')).status,403);
+ await post('settings',{...packet.state.settings,baseAttempts:2});assert.equal(packet.revision,1);assert.equal((await request(leader,{op:'settings',revision:0,data:packet.state.settings})).status,409);
+ assert.equal((await request(owner,{op:'settings',revision:packet.revision,data:{...packet.state.settings,method:'Weighted',lifeShare:null}})).status,400);
+ let review=g.emptyReview('Abinesh',0,'2026-10-03');review.status='Confirmed';review.evidence='Reviewed synthetic life and path examples';assert.equal((await request(owner,{op:'review',revision:packet.revision,data:review})).status,400);
+ review.grades.forEach((x,i)=>{x.life=vals[i];x.path=vals[i];});await post('review',review,leader);assert.equal(packet.state.reviews[0].reviewer,'Premothan V');
+ const practice={id:'Abinesh__1',player:'Abinesh',week:1,status:'Planned',minutes:0,evidence:'',feedback:'',retry:'',outcome:'',support:'',exerciseUrl:''};await post('practice',practice);assert.equal(JSON.stringify(packet.state.practices[0].targets),JSON.stringify(['C1A','C1D','C1B']));
+ review.grades.forEach(x=>{x.life=4;x.path=4;});await post('review',review);assert.equal(packet.state.reviewHistory.length,1);assert.equal(packet.state.reviewHistory[0].grades[0].life,2);assert.equal(packet.state.practices[0].weekend,'C1A');
+ const support={...packet.state.supports[0],extraDays:2,extraAttempts:1,approved:true,basis:'Agreed caring and earning commitments'};await post('support',support);
+ const task={id:'qa-task',player:'Abinesh',title:'Explain structures',expected:'Demonstrate and explain one structure relationship',due:'2026-10-06',extraDays:null,extraAttempts:null,reason:''};await post('task',task);let allowance=g.taskAllowance(packet.state,task);assert.equal(allowance.due,'2026-10-08');assert.equal(allowance.allowed,3);
+ const day=g.emptyDay('2026-10-06');Object.assign(day.rows[0],{taskId:task.id,task:task.title,scheduled:480,breaks:60,meetings:30,productive:100,learning:50,attempts:1});await post('day',day);assert.equal(g.taskAllowance(packet.state,task).remaining,2);
+ await post('task',{...task,extraDays:0,extraAttempts:0,reason:'A specifically agreed zero override'});assert.equal(g.taskAllowance(packet.state,packet.state.tasks[0]).due,'2026-10-06');assert.equal(g.taskAllowance(packet.state,packet.state.tasks[0]).allowed,2);
+ const incident={...packet.state.incidents[0],id:'qa-shared',date:'2026-10-06',affected:['Abinesh','Stephen'],reportedCount:2,status:'Reviewed',evidence:'Verified timestamps',explanation:'Suitable AI was available; method reviewed',recovery:'Recreate and validate delayed output'};await post('incident',incident);assert.equal(g.incidentMinutes(packet.state,'Abinesh','2026-10-06').avoidable,240);assert.equal(g.dailyBalance(packet.state,'2026-10-06',packet.state.days[0].rows[0]).gap,0);
+ assert.equal((await request(owner,{op:'incident',revision:packet.revision,data:{...incident,reportedCount:3}})).status,400);assert.equal((await request(owner,{op:'incident',revision:packet.revision,data:{...incident,attribute:''}})).status,400);
+ await post('incident',{...incident,id:'qa-blocker',kind:'External blocker',attribute:'',timeType:'Blocked',minutes:30,catalogueId:'M021'});
+ const later=await ok(leader);assert.equal(later.state.days[0].rows[0].attempts,1);assert.equal(later.state.reviews[0].grades[0].life,4);assert.equal(later.state.incidents.find(i=>i.id==='qa-blocker').attribute,'');
+ const shared=await ok(rider,undefined,'/api/crew');assert.doesNotMatch(JSON.stringify(shared),/Married with child|qa-shared|Life and Path reviewed|growth_workspace/);
+ console.log('Passed: protected GET and POST, origin checks, optimistic concurrency, persistent cross-leader reads, review validation and history, saved practice targets, approved allowance formulas, zero overrides, attempt totals, shared allocation, external blockers, and no growth data in shared crew records.');
+ console.log('All growth checks passed. Test records remained in an isolated local database.');
+}finally{await mf.dispose();}
