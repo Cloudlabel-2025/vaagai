@@ -20,9 +20,10 @@ export async function POST(req: Request) {
         if (taskId && !all.some(r => r.kind === "task" && r.id === taskId))
             throw new RequestError("Select a visible project task.", 404);
         const day = istDate(), quotaId = `${u.email}:${day}`;
-        await database().prepare("INSERT OR IGNORE INTO guide_usage(id,author,day,used) VALUES(?,?,?,0)").bind(quotaId, u.email, day).run();
-        const reserved = await database().prepare("UPDATE guide_usage SET used=used+1 WHERE id=? AND used<20").bind(quotaId).run();
-        if (reserved.meta.changes !== 1)
+        const usage=(await database()).usage;
+        await usage.updateOne({_id:quotaId},{$setOnInsert:{_id:quotaId,id:quotaId,author:u.email,day,used:0}},{upsert:true});
+        const reserved = await usage.updateOne({_id:quotaId,used:{$lt:20}},{$inc:{used:1}});
+        if (reserved.modifiedCount !== 1)
             throw new RequestError("Today's 20-question allowance is used. Continue with your mentor; the allowance resets tomorrow in IST.", 429);
         const context = all.filter(r => ["task", "raid", "scenario", "evidence"].includes(r.kind)).slice(0, 60).map(r => ({ kind: r.kind, id: r.id, title: r.data.title, description: r.data.description, detail: r.data.detail, criteria: r.data.criteria, status: r.data.status, summary: r.data.summary, review: r.data.review ? { feedback: r.data.review.feedback, validation: r.data.review.validation } : undefined, owner: crew.find(p => p.email === r.data.owner)?.name }));
         const history = all.filter(r => r.kind === "guide" && r.author === u.email).slice(0, 3).reverse().flatMap(r => [{ role: "user", content: r.data.question }, { role: "assistant", content: r.data.answer }]);
@@ -32,11 +33,11 @@ export async function POST(req: Request) {
             response = await fetch("https://api.openai.com/v1/responses", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ model: runtime.OPENAI_MODEL || "gpt-5-mini", instructions, input: [...history, { role: "user", content: question }], max_output_tokens: 1800, reasoning: { effort: "low" }, store: false }), signal: AbortSignal.timeout(45000) });
         }
         catch {
-            await database().prepare("UPDATE guide_usage SET used=MAX(0,used-1) WHERE id=?").bind(quotaId).run();
+            await usage.updateOne({_id:quotaId,used:{$gt:0}},{$inc:{used:-1}});
             throw new RequestError("River Guide could not connect. Your question is still here; try again shortly.", 503);
         }
         if (!response.ok) {
-            await database().prepare("UPDATE guide_usage SET used=MAX(0,used-1) WHERE id=?").bind(quotaId).run();
+            await usage.updateOne({_id:quotaId,used:{$gt:0}},{$inc:{used:-1}});
             let apiCode="";try{apiCode=((await response.json()) as any)?.error?.code||"";}catch{}
             const detail = ["credit_balance_exhausted","insufficient_quota"].includes(apiCode) ? "River Guide is connected, but the OpenAI account has no available API credits. Lavanya needs to add API credits to enable answers." : response.status === 429 ? "River Guide has reached a temporary API rate limit. Try again shortly." : response.status === 401 ? "The API connection needs attention from Lavanya." : "River Guide is temporarily unavailable. Try again shortly.";
             throw new RequestError(detail, 503);
@@ -46,9 +47,7 @@ export async function POST(req: Request) {
         if (!answer)
             throw new RequestError("River Guide did not return a complete answer. Please try a shorter question.", 503);
         await insert(crypto.randomUUID(), "guide", u.email, { question, answer, taskId: taskId || null, usage: result.usage, model: runtime.OPENAI_MODEL || "gpt-5-mini" }).run();
-        const quota = await database().prepare("SELECT used FROM guide_usage WHERE id=?").bind(quotaId).first<{
-            used: number;
-        }>();
+        const quota = await usage.findOne({_id:quotaId});
         return Response.json({ answer, remaining: 20 - (quota?.used || 0) });
     }
     catch (e) {

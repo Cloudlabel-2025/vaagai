@@ -4,11 +4,11 @@ export async function POST(req: Request) {
     try {
         sameOrigin(req);
         const u = await identity();
-        if (Number(req.headers.get("content-length")) > 11 * 1024 * 1024)
-            throw new RequestError("Use a file smaller than 10 MB.", 413);
+        if (Number(req.headers.get("content-length")) > 4.4 * 1024 * 1024)
+            throw new RequestError("Use a file up to 4 MB.", 413);
         const data = await req.formData(), file = data.get("file");
-        if (!(file instanceof File) || !file.size || file.size > 10 * 1024 * 1024)
-            throw new RequestError("Choose a non-empty file up to 10 MB.");
+        if (!(file instanceof File) || !file.size || file.size > 4 * 1024 * 1024)
+            throw new RequestError("Choose a non-empty file up to 4 MB.");
         if (!allowed.test(file.name))
             throw new RequestError("Use PDF, Office, CSV, text, JSON, ZIP or an image file.");
         const id = crypto.randomUUID(), key = `jaguar/${id}`, name = file.name.replace(/[\r\n\x00-\x1f]/g, "").slice(0, 180);

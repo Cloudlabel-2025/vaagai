@@ -1,15 +1,17 @@
+import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { spawn } from "node:child_process";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import assert from "node:assert/strict";
 
+const replica=await MongoMemoryReplSet.create({replSet:{count:1}});
 const production = process.argv.includes("--production");
 const directory = await mkdtemp(path.join(tmpdir(), "jaguar-http-"));
 const origin = "http://127.0.0.1:3197";
 const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", production ? "start" : "dev", "--hostname", "127.0.0.1", "--port", "3197"], {
   cwd: process.cwd(), windowsHide: true,
-  env: { ...process.env, JAGUAR_DATA_DIR: directory, JAGUAR_TRUST_AUTH_HEADERS: "false", NEXT_TELEMETRY_DISABLED: "1" },
+  env: { ...process.env, MONGODB_URI: replica.getUri(), MONGODB_DB: "jaguar_http_test", JAGUAR_TRUST_AUTH_HEADERS: "false", NEXT_TELEMETRY_DISABLED: "1" },
 });
 let log = "";
 child.stdout.on("data", data => { log = (log + data).slice(-6000); });
@@ -70,5 +72,6 @@ try {
 } catch (error) { console.error(log); throw error; }
 finally {
   child.kill(); await stopped;
+  await replica.stop();
   await rm(directory, { recursive: true, force: true, maxRetries: 5, retryDelay: 250 });
 }

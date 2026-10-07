@@ -32,7 +32,7 @@ const mutation=z.discriminatedUnion('op',[
  z.object({op:z.literal('task'),revision:z.number().int().min(0),data:taskSchema}),
 ]);
 async function allowed(){const u=await identity();if(!canManageGrowth(u))throw new RequestError('Growth Tracker is available only to Premothan and Lavy.',403);return u;}
-async function load(){const row=await database().prepare('SELECT data,revision,updated_by,updated_at FROM growth_workspace WHERE id=?').bind('jaguar').first<{data:string;revision:number;updated_by:string;updated_at:string}>();return {state:row?JSON.parse(row.data) as GrowthState:initialGrowthState(),revision:row?.revision??0,updatedBy:row?.updated_by??null,updatedAt:row?.updated_at??null};}
+async function load(){const row=await (await database()).growth.findOne({_id:'jaguar'});return {state:row?row.data:initialGrowthState(),revision:row?.revision??0,updatedBy:row?.updated_by??null,updatedAt:row?.updated_at??null};}
 const reply=(data:unknown)=>Response.json(data,{headers:{'Cache-Control':'private, no-store','Vary':'oai-authenticated-user-id, oai-authenticated-user-email'}});
 export async function GET(){try{await allowed();return reply(await load());}catch(e){return failure(e);}}
 export async function POST(req:Request){try{
@@ -76,7 +76,8 @@ export async function POST(req:Request){try{
  }
  const now=new Date().toISOString(),revision=loaded.revision+1,json=JSON.stringify(state);
  if(json.length>3000000)throw new RequestError('This tracker has reached its record limit. Contact the project lead.');
- const result=loaded.revision===0?await database().prepare('INSERT OR IGNORE INTO growth_workspace(id,data,revision,updated_by,updated_at) VALUES(?,?,?,?,?)').bind('jaguar',json,revision,u.email,now).run():await database().prepare('UPDATE growth_workspace SET data=?,revision=?,updated_by=?,updated_at=? WHERE id=? AND revision=?').bind(json,revision,u.email,now,'jaguar',loaded.revision).run();
- if(result.meta.changes!==1)throw new RequestError('Another leader saved a change. Reload the tracker, then save your kept draft again.',409);
+ const collection=(await database()).growth, fields={data:state,revision,updated_by:u.email,updated_at:now};
+ const result=loaded.revision===0?await collection.updateOne({_id:'jaguar'},{$setOnInsert:{_id:'jaguar',id:'jaguar',...fields}},{upsert:true}):await collection.updateOne({_id:'jaguar',revision:loaded.revision},{$set:fields});
+ if(result.modifiedCount+result.upsertedCount!==1)throw new RequestError('Another leader saved a change. Reload the tracker, then save your kept draft again.',409);
  return reply({state,revision,updatedBy:u.email,updatedAt:now});
  }catch(e){return failure(e);}}

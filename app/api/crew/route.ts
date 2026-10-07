@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { identity, database, records, record, insert, update, failure, RequestError, safeUrl, sameOrigin } from "../../../lib/crew-server";
+import { identity, database, records, record, insert, update, failure, RequestError, safeUrl, sameOrigin, row, crewDocument, insertOnce, upsertRecord, submitEvidence, reviewEvidence, recordEnergy } from "../../../lib/crew-server";
 import { crew, visibleRecords, canControl, canSeeScenario, istDate, energyState, appealDeadline, rules } from "../../../lib/jaguar";
 const text = z.string().trim().min(1).max(6000);
 const short = z.string().trim().min(1).max(240);
@@ -22,11 +22,11 @@ export async function GET() {
         const now = new Date(), local = new Date(now.getTime() + 330 * 60000), day = istDate(now);
         if (day >= "2026-10-05" && local.getUTCDay() !== 0 && local.getUTCDay() !== 6 && (local.getUTCHours() * 60 + local.getUTCMinutes()) >= 1050) {
             const id = `jira-reminder:${day}`;
-            await database().prepare("INSERT OR IGNORE INTO crew_records(id,kind,author,data,created_at,updated_at,revision) VALUES(?,?,?,?,?,?,1)").bind(id, "notification", "system", JSON.stringify({ title: "17:30 IST: update Jira stories/tasks, blockers, evidence links and next action.", target: "tasks", recipient: "all" }), now.toISOString(), now.toISOString()).run();
+            await insertOnce(id, "notification", "system", { title: "17:30 IST: update Jira stories/tasks, blockers, evidence links and next action.", target: "tasks", recipient: "all" }, now.toISOString());
         }
         const all = await records();
         for (const r of all.filter(r => r.kind === "scenario" && r.data.published === true && Date.parse(r.data.releaseAt) <= now.getTime() && istDate(now) >= "2026-10-20")) {
-            await database().prepare("INSERT OR IGNORE INTO crew_records(id,kind,author,data,created_at,updated_at,revision) VALUES(?,?,?,?,?,?,1)").bind(`scenario-release:${r.id}`, "notification", "system", JSON.stringify({ title: `Released ${r.data.type}: ${r.data.title}`, target: "control", recipient: "all" }), r.data.releaseAt, r.data.releaseAt).run();
+            await insertOnce(`scenario-release:${r.id}`, "notification", "system", { title: `Released ${r.data.type}: ${r.data.title}`, target: "control", recipient: "all" }, r.data.releaseAt);
         }
         const visible = visibleRecords(all, u, now).filter(r => r.kind !== "upload" && (r.kind !== "notification" || (r.data.recipient === u.email || r.data.recipient === "all" && r.author !== u.email)));
         return Response.json({ user: u, records: visible, serverTime: now.toISOString(), aiConfigured: true }, { headers: { "Cache-Control": "private, no-store" } });
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
         else if (op === "readiness") {
             const d = check(b, z.object({ confirmed: z.literal(true) }));
             id = `readiness:${u.email}`;
-            await database().prepare("INSERT INTO crew_records(id,kind,author,data,created_at,updated_at,revision) VALUES(?,?,?,?,?,?,1) ON CONFLICT(id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at,revision=crew_records.revision+1").bind(id, "readiness", u.email, JSON.stringify(d), new Date().toISOString(), new Date().toISOString()).run();
+            await upsertRecord(id, "readiness", u.email, d);
         }
         else if (op === "task") {
             lead(u);
@@ -97,14 +97,14 @@ export async function POST(req: Request) {
                 if (file.kind !== "upload" || file.author !== u.email)
                     throw new RequestError("This upload does not belong to you.", 403);
             }
-            const all = await records(), groupId = d.groupId || crypto.randomUUID();
-            const versions = all.filter(r => r.kind === "evidence" && r.data.groupId === groupId);
+            const groupId = d.groupId || crypto.randomUUID();
+            const versions = (await (await database()).records.find({ kind: "evidence", "data.groupId": groupId }).toArray()).map(row);
             if (versions.some(r => r.author !== u.email || r.data.taskId !== d.taskId))
                 throw new RequestError("Invalid evidence version group.", 403);
             const version = Math.max(0, ...versions.map(r => Number(r.data.version))) + 1;
             id = `${groupId}:v${version}`;
             const attachment = d.attachmentId ? (await record(d.attachmentId)).data : null;
-            await database().batch([...versions.filter(r => r.data.status === "Pending review").map(r => database().prepare("UPDATE crew_records SET data=?,updated_at=?,revision=revision+1 WHERE id=?").bind(JSON.stringify({ ...r.data, status: "Superseded" }), new Date().toISOString(), r.id)), insert(id, "evidence", u.email, { ...d, groupId, version, status: "Pending review", attachment }), database().prepare("UPDATE crew_records SET data=?,updated_at=?,revision=revision+1 WHERE id=?").bind(JSON.stringify({ ...task.data, status: "Awaiting review" }), new Date().toISOString(), task.id)]);
+            await submitEvidence(crewDocument(id, "evidence", u.email, { ...d, groupId, version, status: "Pending review", attachment }), task);
             await notify(u, `${u.name} submitted ${d.title} · v${version}`, "evidence");
         }
         else if (op === "review") {
@@ -120,11 +120,7 @@ export async function POST(req: Request) {
                 throw new RequestError("The evidence changed. Refresh and review again.", 409);
             const operationId=crypto.randomUUID(),now=new Date().toISOString();
             const review = { by: u.name, at: now, operationId, feedback: d.feedback, validation: d.validation, c1: d.c1, c2: d.c2, c3: d.c3 };
-            const results=await database().batch([
-                database().prepare("UPDATE crew_records SET data=?,updated_at=?,revision=revision+1 WHERE id=? AND revision=? AND NOT EXISTS (SELECT 1 FROM crew_records newer WHERE newer.kind='evidence' AND json_extract(newer.data,'$.groupId')=? AND json_extract(newer.data,'$.version')>?)").bind(JSON.stringify({...r.data,status:d.decision,review}),now,r.id,d.revision,r.data.groupId,r.data.version),
-                database().prepare("UPDATE crew_records SET data=json_set(data,'$.status',?),updated_at=?,revision=revision+1 WHERE id=? AND EXISTS(SELECT 1 FROM crew_records WHERE id=? AND json_extract(data,'$.review.operationId')=?)").bind(d.decision==="Accepted"?"Accepted":"In progress",now,r.data.taskId,r.id,operationId)
-            ]);
-            if(results[0].meta.changes!==1)throw new RequestError("This evidence changed while you reviewed it. Refresh before continuing.",409);
+            await reviewEvidence(r, d.revision, d.decision, review, now);
             await notify(u, `${r.data.title}: ${d.decision} — ${d.feedback.slice(0, 160)}`, "evidence", r.author);
             id = r.id;
         }
@@ -171,7 +167,7 @@ export async function POST(req: Request) {
                 throw new RequestError("Only Lavanya can update crew settings.", 403);
             const d = check(b, z.object({ jira: url, aiEnabled: z.boolean(), weeklyAdmin: member.optional() }));
             id = "crew-config";
-            await database().prepare("INSERT INTO crew_records(id,kind,author,data,created_at,updated_at,revision) VALUES(?,?,?,?,?,?,1) ON CONFLICT(id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at,revision=crew_records.revision+1").bind(id, "config", u.email, JSON.stringify({ ...((await records()).find(r => r.kind === "config")?.data || {}), ...d }), new Date().toISOString(), new Date().toISOString()).run();
+            await upsertRecord(id, "config", u.email, { ...((await records()).find(r => r.kind === "config")?.data || {}), ...d });
         }
         else if (op === "scenario") {
             if (u.role !== "owner" && (u.role !== "cohort_leader" || istDate() < "2026-10-20"))
@@ -204,9 +200,7 @@ export async function POST(req: Request) {
             const after = energyState([...all, { id, kind: "energy", author: u.email, data: { rider: d.rider }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), revision: 1 }], d.rider);
             const data = { ...d, before, after, appealDeadline: appealDeadline(), appealStatus: "Not appealed", reviewer: u.name };
             const count = all.filter(r => r.kind === "energy" && r.data.rider === d.rider && r.data.appealStatus !== "upheld").length, now = new Date().toISOString();
-            const saved = await database().prepare("INSERT INTO crew_records(id,kind,author,data,created_at,updated_at,revision) SELECT ?,?,?,?,?,?,1 WHERE (SELECT COUNT(*) FROM crew_records WHERE kind='energy' AND json_extract(data,'$.rider')=? AND json_extract(data,'$.appealStatus')!='upheld')=?").bind(id, "energy", u.email, JSON.stringify(data), now, now, d.rider, count).run();
-            if (saved.meta.changes !== 1)
-                throw new RequestError("The energy state changed. Refresh before recording this loss.", 409);
+            await recordEnergy(crewDocument(id, "energy", u.email, data, now), d.rider, count);
             await notify(u, `Energy review: ${d.rule}. One appeal is available within two working hours.`, "control", d.rider);
         }
         else if (op === "appeal") {
@@ -244,7 +238,7 @@ export async function POST(req: Request) {
         else if (op === "receipt") {
             id = `receipt:${u.email}`;
             const now = new Date().toISOString();
-            await database().prepare("INSERT INTO crew_records(id,kind,author,data,created_at,updated_at,revision) VALUES(?,?,?,?,?,?,1) ON CONFLICT(id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at,revision=crew_records.revision+1").bind(id, "receipt", u.email, JSON.stringify({ readAt: now }), now, now).run();
+            await upsertRecord(id, "receipt", u.email, { readAt: now }, now);
         }
         else
             throw new RequestError("Unknown action.");
