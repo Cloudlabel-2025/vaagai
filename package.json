@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=22.15.0"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "node --use-system-ca node_modules/next/dist/bin/next dev --hostname 127.0.0.1",
-    "build": "node --use-system-ca node_modules/next/dist/bin/next build",
+    "build": "next build",
     "start": "node --use-system-ca node_modules/next/dist/bin/next start --hostname 127.0.0.1",
     "lint": "eslint app lib db --ignore-pattern c310-fonts.ts",
     "typecheck": "tsc --noEmit",
@@ -115,5 +115,6 @@
     "@radix-ui/react-password-toggle-field": "0.1.11",
     "@radix-ui/react-use-controllable-state": "1.2.6",
     "@radix-ui/react-one-time-password-field": "0.1.16"
-  }
+  },
+  "packageManager": "npm@10.9.2"
 }
