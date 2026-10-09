@@ -1,3 +1,4 @@
+import { activeRoster } from "../../../lib/access";
 import { z } from 'zod';
 import { identity,database,RequestError,sameOrigin,safeUrl } from '../../../lib/crew-server';
 import { models,assessment,assessmentList,store,context,c310Failure } from '../../../lib/c310-server';
@@ -24,10 +25,10 @@ const mutation=z.discriminatedUnion('op',[
  z.object({op:z.literal('weekend'),...base,week:z.number().int().min(1).max(14)}).strict(),
  z.object({op:z.literal('model'),data:configuration}).strict(),
 ]);
-const reply=(data:unknown)=>Response.json(data,{headers:{'Cache-Control':'private, no-store','Vary':'oai-authenticated-user-id, oai-authenticated-user-email'}});
-export async function GET(){try{const u=await identity(),all=await assessmentList(u);return reply({user:u,models:await models(),assessments:all,contexts:Object.fromEntries(await Promise.all(all.map(async r=>[r.assessment.id,await context(r.assessment)]))),reviewRiders:crew.filter(p=>canReview(u,p.email)).map(p=>({name:p.name,email:p.email}))});}catch(e){return c310Failure(e);}}
+const reply=(data:unknown)=>Response.json(data,{headers:{'Cache-Control':'private, no-store','Vary':'Cookie'}});
+export async function GET(){try{const u=await identity(),all=await assessmentList(u),roster=await activeRoster();return reply({user:u,models:await models(),assessments:all,contexts:Object.fromEntries(await Promise.all(all.map(async r=>[r.assessment.id,await context(r.assessment)]))),reviewRiders:roster.filter(p=>canReview(u,p.email,roster)).map(p=>({name:p.name,email:p.email}))});}catch(e){return c310Failure(e);}}
 export async function POST(req:Request){try{
- sameOrigin(req);const u=await identity(),raw=await req.text();if(raw.length>90000)throw new RequestError('This assessment entry is too large. Shorten the examples.');let input:unknown;try{input=JSON.parse(raw);}catch{throw new RequestError('Enter a valid C310 request.');}
+ sameOrigin(req);const roster=await activeRoster();const u=await identity(),raw=await req.text();if(raw.length>90000)throw new RequestError('This assessment entry is too large. Shorten the examples.');let input:unknown;try{input=JSON.parse(raw);}catch{throw new RequestError('Enter a valid C310 request.');}
  const parsed=mutation.safeParse(input);if(!parsed.success)throw new RequestError(parsed.error.issues[0].message);const p=parsed.data,now=new Date().toISOString();
  if(p.op==='model'){if(u.role!=='owner')throw new RequestError('Only Lavy can publish scoring-model versions.',403);if((await models()).some(m=>m.version===p.data.version))throw new RequestError('Use a new, unique model version label.');const model={...p.data,factors:attributes.map(([code])=>p.data.factors.find(f=>f.code===code)!),id:crypto.randomUUID(),createdAt:now} as Model;await (await database()).models.insertOne({_id:model.id,id:model.id,data:model,created_at:now});return reply({model});}
  if(p.op==='new'){
@@ -37,14 +38,14 @@ export async function POST(req:Request){try{
   await (await database()).assessments.insertOne({_id:a.id,id:a.id,rider:a.rider,data:a,revision:1,created_at:now,updated_at:now});return reply({record:{assessment:a,revision:1,updatedAt:now},context:await context(a)});
  }
  const loaded=await assessment(p.id,u),a=loaded.assessment;if(p.revision!==loaded.revision)throw new RequestError('This assessment changed. Reload saved data, then save your kept draft again.',409);
- const own=a.rider===u.email,mentor=canReview(u,a.rider),latest=()=>[...a.mentorReviews].reverse().find(r=>r.status==='Confirmed')??null;
+ const own=a.rider===u.email,mentor=canReview(u,a.rider,roster),latest=()=>[...a.mentorReviews].reverse().find(r=>r.status==='Confirmed')??null;
  const snapshot=async()=>{const review=latest();a.reports.push(makeReport(a,review?'Mentor-rated':'Self-rated',await context(a),review));};
  if(p.op==='draft'){
   if(!own)throw new RequestError('Only the rider can enter self-ratings.',403);if(a.status!=='Draft')throw new RequestError('Generated assessments are preserved. Start a reassessment to change self-ratings.');a.answers={...p.answers,ratings:a.model.factors.map(f=>p.answers.ratings.find(r=>r.code===f.code)!)} as Answers;
  }else if(p.op==='submit'){
   if(!own)throw new RequestError('Only the rider can submit a self-assessment.',403);if(a.status!=='Draft')throw new RequestError('This assessment already has a saved report.');if(!a.answers.subject||!a.answers.path)throw new RequestError('Enter the subject and route before generating the report.');if(a.answers.date>istDate())throw new RequestError('Choose an assessment date on or before today.');if(!calculate(a.model,a.answers.ratings).complete)throw new RequestError('Missing ratings do not receive a final score. Save the draft until all twenty parts have enough evidence.');a.status='Submitted';await snapshot();
  }else if(p.op==='request'){
-  if(!own)throw new RequestError('Only the rider can request review.',403);if(a.status==='Draft')throw new RequestError('Generate the report before requesting mentor review.');if(!crew.some(c=>canReview(c as import('../../../lib/jaguar').Identity,a.rider)))throw new RequestError('An independent mentor must be assigned before this account can receive confirmation.');a.status='Review requested';
+  if(!own)throw new RequestError('Only the rider can request review.',403);if(a.status==='Draft')throw new RequestError('Generate the report before requesting mentor review.');if(!roster.some(c=>canReview(c,a.rider,roster)))throw new RequestError('An independent mentor must be assigned before this account can receive confirmation.');a.status='Review requested';
  }else if(p.op==='mentor_draft'){
   if(!mentor)throw new RequestError('Only an assigned independent mentor can rate this rider.',403);if(a.status==='Draft')throw new RequestError('The rider must submit the assessment before mentor review.');
   const existing=p.reviewId?a.mentorReviews.find(r=>r.id===p.reviewId):null;if(p.reviewId&&(!existing||existing.mentor!==u.email||existing.status!=='Draft'))throw new RequestError('Open your own draft review or start a new review.');

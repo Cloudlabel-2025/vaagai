@@ -3,15 +3,13 @@ import { getDb, transaction } from "../db";
 import { MongoServerError } from "mongodb";
 import type { CrewDocument } from "../db/schema";
 import { requestOrigin } from "./request-origin";
-import { getChatGPTUser } from "../app/chatgpt-auth";
-import { workspaceIdentity } from "../app/authorization";
+import { getWorkspaceUser } from "../app/auth";
 import type { CrewRecord } from "./jaguar";
 export class RequestError extends Error {
     constructor(message: string, public status = 400) { super(message); }
 }
-export async function identity() { const user = await getChatGPTUser(); if (!user)
-    throw new RequestError("Sign in with ChatGPT to open Jaguar Crew.", 401); const member = workspaceIdentity(user); if (!member)
-    throw new RequestError("This account is not an active Jaguar Crew member.", 403); return member; }
+export async function identity() { const user = await getWorkspaceUser(); if (!user)
+    throw new RequestError("Sign in with your approved Google account to open Jaguar Crew.", 401); return user; }
 export const database = getDb;
 export function bucket() { return mongoBucket; }
 export function row(r: CrewDocument): CrewRecord { return { id: r.id, kind: r.kind, author: r.author, data: r.data, createdAt: r.created_at, updatedAt: r.updated_at, revision: r.revision }; }

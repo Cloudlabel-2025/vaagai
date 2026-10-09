@@ -1,12 +1,9 @@
 import { z } from "zod";
+import { activeRoster } from "../../../lib/access";
 import { identity, database, records, record, insert, update, failure, RequestError, safeUrl, sameOrigin, row, crewDocument, insertOnce, upsertRecord, submitEvidence, reviewEvidence, recordEnergy } from "../../../lib/crew-server";
 import { crew, visibleRecords, canControl, canSeeScenario, istDate, energyState, appealDeadline, rules } from "../../../lib/jaguar";
 const text = z.string().trim().min(1).max(6000);
 const short = z.string().trim().min(1).max(240);
-const member = z.enum(crew.filter(p => p.role === "learner").map(p => p.email) as [
-    string,
-    ...string[]
-]);
 const url = z.string().max(2048).refine(v => !v || safeUrl(v), "Use a complete HTTPS link.");
 const iso = z.string().refine(v => Number.isFinite(Date.parse(v)), "Enter a valid date and time.");
 function lead(u: any) { if (!canControl(u))
@@ -29,7 +26,7 @@ export async function GET() {
             await insertOnce(`scenario-release:${r.id}`, "notification", "system", { title: `Released ${r.data.type}: ${r.data.title}`, target: "control", recipient: "all" }, r.data.releaseAt);
         }
         const visible = visibleRecords(all, u, now).filter(r => r.kind !== "upload" && (r.kind !== "notification" || (r.data.recipient === u.email || r.data.recipient === "all" && r.author !== u.email)));
-        return Response.json({ user: u, records: visible, serverTime: now.toISOString(), aiConfigured: true }, { headers: { "Cache-Control": "private, no-store" } });
+        return Response.json({ user: u, crew: await activeRoster(), records: visible, serverTime: now.toISOString(), aiConfigured: true }, { headers: { "Cache-Control": "private, no-store" } });
     }
     catch (e) {
         return failure(e);
@@ -42,6 +39,8 @@ export async function POST(req: Request) {
         if (Number(req.headers.get("content-length")) > 32000)
             throw new RequestError("This entry is too large.", 413);
         const b = await req.json() as Record<string, any>, op = b.op;
+        const roster = await activeRoster();
+        const member = z.string().refine(email => roster.some(person => person.email === email && person.role === "learner"), "Choose an active learner.");
         let id = crypto.randomUUID();
         if (op === "post" || op === "reply") {
             const d = check(b, z.object({ text, parentId: z.string().optional() }));

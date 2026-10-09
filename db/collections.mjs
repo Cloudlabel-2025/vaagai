@@ -34,4 +34,12 @@ export async function initializeCollections(db) {
     try { await db.createCollection("workspace_locks"); } catch (error) { if (error.code !== 48) throw error; }
   }
   await db.collection("uploads.files").createIndex({ filename: 1 }, { unique: true, name: "private_key_unique" });
+  await db.collection("approved_users").createIndex({ email: 1 }, { unique: true });
+  await db.collection("auth_users").createIndex({ email: 1 }, { unique: true });
+  await db.collection("auth_accounts").createIndex({ provider: 1, providerAccountId: 1 }, { unique: true });
+  await db.collection("auth_sessions").createIndex({ sessionToken: 1 }, { unique: true });
+  await db.collection("auth_sessions").createIndex({ expires: 1 }, { expireAfterSeconds: 0 });
+  await db.collection("password_sessions").createIndex({ expires: 1 }, { expireAfterSeconds: 0 });
+  await db.collection("password_sessions").createIndex({ email: 1 });
+  await db.collection("password_attempts").createIndex({ expires: 1 }, { expireAfterSeconds: 0 });
 }

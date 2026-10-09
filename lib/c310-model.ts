@@ -34,8 +34,8 @@ export type Assessment={id:string;rider:string;riderName:string;model:Model;answ
 export type AssessmentRecord={assessment:Assessment;revision:number;updatedAt:string};
 export const round2=(n:number)=>Math.round((n+Number.EPSILON)*100)/100;
 export const emptyRatings=():Rating[]=>attributes.map(([code])=>({code,p1:null,p2:null,e1:'',e2:''}));
-export const canReview=(u:Identity,target:string)=>u.email!==target&&(u.role==='owner'||u.role==='cohort_leader'&&crew.some(c=>c.email===target&&c.role==='learner'));
-export const canAccess=(u:Identity,a:Assessment)=>a.rider===u.email||canReview(u,a.rider);
+export const canReview=(u:Identity,target:string,roster:readonly Identity[]=crew)=>u.email!==target&&(u.role==='owner'||u.role==='cohort_leader'&&roster.some(c=>c.email===target&&c.role==='learner'));
+export const canAccess=(u:Identity,a:Assessment,roster:readonly Identity[]=crew)=>a.rider===u.email||canReview(u,a.rider,roster);
 export const riderPlayer=(email:string):Player|null=>{const p=crew.find(p=>p.email===email)?.name.split(' ')[0];return players.includes(p as Player)?p as Player:null;};
 export function calculate(model:Model,ratings:Rating[],outcome:Outcome|null=null):Scores{
  const factors=model.factors.map(f=>{const r=ratings.find(r=>r.code===f.code);const p1=r?.p1??null,p2=r?.p2??null,blended=p1===null||p2===null?null:p1*f.p1Share+p2*f.p2Share;return {...f,p1Definition:f.p1,p2Definition:f.p2,p1,p2,blended,level:blended===null?null:blended*20,points:blended===null?null:blended/5*f.weight,gap:blended===null?null:f.weight-blended/5*f.weight};});

@@ -16,7 +16,7 @@ npm install
 npm run dev
 ```
 
-Open http://127.0.0.1:3000 and click Sign in with ChatGPT. In development this opens a local crew-member selector. Choose a member to test their existing permissions. This is development impersonation, not a real ChatGPT login. Sessions expire after eight hours or a server restart. Production disables this selector.
+Open http://127.0.0.1:3000 and click Continue with Google after configuring the credentials in [AUTH_SETUP.md](AUTH_SETUP.md). For development-only testing without Google, visit `/signin-with-chatgpt` to choose a crew member. Production redirects this legacy URL to Google sign-in.
 
 Copy `.env.example` to `.env.local` and configure `MONGODB_URI` and `MONGODB_DB=vaagai_jaguar` before using the APIs. River Guide requires a separately configured server-side OpenAI key. No credentials are bundled and this migration does not connect to the provider.
 
@@ -63,15 +63,17 @@ Apply inserts missing records/files, skips exact matches, stops on destination c
 
 Set `MONGODB_URI` to the Atlas application's connection string and `MONGODB_DB` to `vaagai_jaguar`. Keep credentials server-side; do not use `NEXT_PUBLIC_` names. Atlas must allow the deployed server's network access, and its database user needs read/write plus collection/index creation permissions. Use a separate database for Preview so preview changes cannot affect Production. Do not add `JAGUAR_DATA_DIR` to Vercel.
 
-Keep `JAGUAR_TRUST_AUTH_HEADERS=false` on public Vercel deployments. MongoDB persistence is ready for serverless hosting, but production authentication still needs the integration described below. Environment variables configure connections; they do not migrate records. Run the migration separately before launch.
+Configure Google authentication using [AUTH_SETUP.md](AUTH_SETUP.md). The old `JAGUAR_TRUST_AUTH_HEADERS` variable is unused. Environment variables configure connections; they do not migrate records. Run the migration separately before launch.
 
 New evidence uploads are limited to 4 MB to leave room for multipart overhead within [Vercel's 4.5 MB request limit](https://vercel.com/docs/functions/limitations). Historical larger uploads can be imported offline and retain their original bytes; verify their streamed downloads on the deployed site.
 
 ## Production authentication
 
-The original Sites gateway supplied trusted identity headers. Standalone Next.js has no such gateway. By default the migrated server ignores these headers and rejects anonymous API access; development sign-in is disabled in production.
+Approved users can sign in with their email and password. Their first login with a temporary password creates a restricted 15-minute session and requires a new password at `/change-password` before any workspace/API access. Existing approvals receive the one-time temporary password `Chc@2025`; completed passwords and disabled accounts are preserved. Passwords use salted scrypt hashes. Full password sessions last eight hours, use random HTTP-only cookies, and store only token hashes in MongoDB. Password attempts are limited to ten per email per 15-minute window across server instances.
 
-Before launch, integrate an authentication provider in `app/chatgpt-auth.ts`, or configure an authenticated reverse proxy that strips incoming identity headers, sets verified `oai-authenticated-user-id` and `oai-authenticated-user-email`, owns the sign-in/sign-out paths and prevents direct access to Next.js. Only behind such a gateway set `JAGUAR_TRUST_AUTH_HEADERS=true`. Set `JAGUAR_APP_ORIGIN` to the public HTTPS origin for proxy deployments. The existing crew allowlist and roles remain enforced. Never enable header trust on a publicly accessible standalone server.
+Signed-out visitors are redirected to `/signin` when opening the workspace. **Continue with Google** is always visible above the email/password form. It remains disabled until the entered email has completed its first password change and Google credentials are configured. Google sign-in uses Auth.js and MongoDB sessions, independently of ChatGPT. Both authentication methods check current approval and role on protected requests. Owners add users with temporary passwords, change roles, disable accounts, and reset temporary passwords at `/admin/users`. Resets revoke password and Google sessions and require another password change. There is no public signup or automatic invitation email.
+
+Follow [AUTH_SETUP.md](AUTH_SETUP.md) to register the Google OAuth callback and configure Vercel secrets. There is no public registration or automatic invitation email. Share the website link after approving the user's Google email. Development impersonation remains disabled in production, and identity headers are never trusted.
 
 ## Migration
 
