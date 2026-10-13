@@ -55,7 +55,7 @@ try {
     await new Promise(resolve => setTimeout(resolve, 500));
   }
   assert.ok(ready, log);
-  for (const section of ["overview", "onboarding", "project", "tasks", "meetings", "community", "evidence", "raid", "c310", "growth", "control", "guide"]) {
+  for (const section of ["overview", "onboarding", "project", "tasks", "meetings", "community", "evidence", "raid", "control", "guide"]) {
     assert.equal((await request(`/${section}`)).status, 200, `Direct navigation to /${section}`);
   }
   assert.equal((await request("/unknown-workspace-section")).status, 404);
@@ -114,7 +114,6 @@ try {
       } }, { upsert: true });
       const cookie = `authjs.session-token=${token}`;
       assert.equal((await (await request("/api/me", cookie)).json()).role, "learner");
-      assert.equal((await request("/api/growth", cookie)).status, 403);
       assert.ok((await (await request("/admin/users", cookie)).text()).includes("Owner access required"));
       await db.collection("approved_users").updateOne({ _id: "sasiabinesh292@gmail.com" }, { $set: { active: false } });
       assert.equal((await request("/api/me", cookie)).status, 401);
@@ -145,16 +144,13 @@ try {
       await db.collection("approved_users").updateOne({ _id: "sasiabinesh292@gmail.com" }, { $set: { mustChangePassword: false } });
       await db.collection("password_sessions").updateOne({ email: "sasiabinesh292@gmail.com" }, { $set: { setup: false } });
       assert.equal((await (await request("/api/me", passwordCookie)).json()).role, "learner");
-      assert.equal((await request("/api/growth", passwordCookie)).status, 403);
       await db.collection("approved_users").updateOne({ _id: "sasiabinesh292@gmail.com" }, { $inc: { passwordVersion: 1 } });
       assert.equal((await request("/api/me", passwordCookie)).status, 401, "Password resets invalidate sessions");
     } finally { await client.close(); }
     console.log("Production: password login/change/logout, owner invitations, Google session checks, roles, disabled users, expiry, and setup isolation passed.");
   } else {
-    const owner = await signIn("lavanyabalaji123@gmail.com", "/growth"), rider = await signIn("sasiabinesh292@gmail.com"), other = await signIn("suryasurjith1997@gmail.com");
+    const owner = await signIn("lavanyabalaji123@gmail.com", "/overview"), rider = await signIn("sasiabinesh292@gmail.com"), other = await signIn("suryasurjith1997@gmail.com");
     assert.equal((await (await request("/api/me", owner)).json()).role, "owner");
-    assert.equal((await request("/api/growth", owner)).status, 200);
-    assert.equal((await request("/api/growth", rider)).status, 403);
     assert.equal((await fetch(origin + "/api/crew", { method: "POST", headers: { Cookie: owner, Origin: "https://other.example", "Content-Type": "application/json" }, body: JSON.stringify({ op: "post", text: "Blocked origin" }) })).status, 403);
     const task = { op: "task", title: "Integration test", description: "Test task", owner: "sasiabinesh292@gmail.com", dueAt: "2026-11-01T10:00:00Z", criteria: "Evidence verified" };
     assert.equal((await request("/api/crew", rider, task)).status, 403);
@@ -162,8 +158,6 @@ try {
     assert.equal((await request("/api/crew", rider, { op: "post", text: "Shared integration record" })).status, 200);
     const shared = await (await request("/api/crew", other)).json();
     assert.ok(shared.records.some(record => record.data.text === "Shared integration record"));
-    assert.equal((await request("/api/c310", rider)).status, 200);
-    assert.equal((await request("/api/c310", rider, { op: "new" })).status, 200);
     const form = new FormData(); form.set("file", new File(["private evidence"], "evidence.txt", { type: "text/plain" }));
     const upload = await fetch(origin + "/api/files", { method: "POST", headers: { Cookie: rider, Origin: origin }, body: form });
     assert.equal(upload.status, 200); const file = await upload.json();
@@ -171,7 +165,7 @@ try {
     assert.equal((await request(`/api/files/${file.id}`, other)).status, 403);
     const logout = await fetch(origin + "/signout-with-chatgpt", { headers: { Cookie: rider }, redirect: "manual" });
     assert.equal(logout.status, 303); assert.ok(logout.headers.get("set-cookie").includes("Max-Age=0"));
-    console.log("Development: sign-in, roles, shared persistence, C310, upload/download privacy and logout passed.");
+    console.log("Development: sign-in, roles, shared persistence, upload/download privacy and logout passed.");
   }
 } catch (error) { console.error(log); throw error; }
 finally {

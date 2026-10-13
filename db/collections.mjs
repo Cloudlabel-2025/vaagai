@@ -1,13 +1,10 @@
-export const applicationCollections = ["crew_records", "guide_usage", "growth_workspace", "c310_models", "c310_assessments"];
+export const applicationCollections = ["crew_records", "guide_usage"];
 const text = { bsonType: "string" };
 const revision = { bsonType: ["int", "long", "double"], minimum: 1 };
 const data = { bsonType: "object" };
 const schemas = {
   crew_records: { required: ["_id", "id", "kind", "author", "data", "created_at", "updated_at", "revision"], properties: { kind: text, author: text, data, created_at: text, updated_at: text, revision } },
   guide_usage: { required: ["_id", "id", "author", "day", "used"], properties: { author: text, day: text, used: { bsonType: ["int", "long", "double"], minimum: 0 } } },
-  growth_workspace: { required: ["_id", "id", "data", "revision", "updated_by", "updated_at"], properties: { data, revision, updated_by: text, updated_at: text } },
-  c310_models: { required: ["_id", "id", "data", "created_at"], properties: { data, created_at: text } },
-  c310_assessments: { required: ["_id", "id", "rider", "data", "revision", "created_at", "updated_at"], properties: { rider: text, data, revision, created_at: text, updated_at: text } },
 };
 
 /** @param {import('mongodb').Db} db */
@@ -28,8 +25,6 @@ export async function initializeCollections(db) {
     { key: { kind: 1, "data.groupId": 1, "data.version": -1 }, name: "evidence_versions" },
     { key: { kind: 1, "data.rider": 1 }, name: "rider_records" },
   ]);
-  await db.collection("c310_assessments").createIndex({ rider: 1, created_at: -1 }, { name: "rider_created" });
-  await db.collection("c310_models").createIndex({ created_at: -1, id: -1 }, { name: "model_created" });
   if (!existing.has("workspace_locks")) {
     try { await db.createCollection("workspace_locks"); } catch (error) { if (error.code !== 48) throw error; }
   }

@@ -108,7 +108,7 @@ export async function POST(req: Request) {
         }
         else if (op === "review") {
             lead(u);
-            const d = check(b, z.object({ id: short, revision: z.number().int(), decision: z.enum(["Accepted", "Rework"]), feedback: text, validation: text, c1: z.number().int().min(0).max(5), c2: z.number().int().min(0).max(5), c3: z.number().int().min(0).max(5) }));
+            const d = check(b, z.object({ op: z.literal("review"), id: short, revision: z.number().int(), decision: z.enum(["Accepted", "Rework"]), feedback: text, validation: text }).strict());
             const r = await record(d.id);
             if (r.kind !== "evidence" || r.data.status !== "Pending review")
                 throw new RequestError("This submission has already been reviewed.", 409);
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
             if (r.revision !== d.revision)
                 throw new RequestError("The evidence changed. Refresh and review again.", 409);
             const operationId=crypto.randomUUID(),now=new Date().toISOString();
-            const review = { by: u.name, at: now, operationId, feedback: d.feedback, validation: d.validation, c1: d.c1, c2: d.c2, c3: d.c3 };
+            const review = { by: u.name, at: now, operationId, feedback: d.feedback, validation: d.validation };
             await reviewEvidence(r, d.revision, d.decision, review, now);
             await notify(u, `${r.data.title}: ${d.decision} — ${d.feedback.slice(0, 160)}`, "evidence", r.author);
             id = r.id;

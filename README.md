@@ -1,8 +1,8 @@
 # Vaagai · Jaguar Crew
 
-Full-stack Next.js 16, React 19, TypeScript and Tailwind CSS. The dashboard, Growth Tracker and C310 assessments use the App Router; backend handlers live in `app/api/**/route.ts` and run in the same Node.js server.
+Full-stack Next.js 16, React 19, TypeScript and Tailwind CSS. The dashboard and evidence reviews use the App Router; backend handlers live in `app/api/**/route.ts` and run in the same Node.js server.
 
-Frontend sections have real page routes: `/overview`, `/onboarding`, `/project`, `/tasks`, `/meetings`, `/community`, `/evidence`, `/raid`, `/c310`, `/growth`, `/control` and `/guide`. `/` also opens the overview. Sidebar links use Next.js navigation, direct links and refresh work, and old hash bookmarks are replaced with the equivalent page route. API endpoints remain under `/api/`.
+Frontend sections have real page routes: `/overview`, `/onboarding`, `/project`, `/tasks`, `/meetings`, `/community`, `/evidence`, `/raid`, `/control` and `/guide`. `/` also opens the overview. Sidebar links use Next.js navigation, direct links and refresh work, and old hash bookmarks are replaced with the equivalent page route. API endpoints remain under `/api/`.
 
 ## Local setup
 
@@ -33,20 +33,19 @@ Production runs at http://127.0.0.1:3000. Pass `-- --port 3100` to either server
 
 - `/api/me`: current crew identity.
 - `/api/crew`: tasks, evidence, community, meetings, RAID and controls.
-- `/api/growth`: role-protected Growth Tracker.
-- `/api/c310`, `/api/c310/[id]/pdf`: assessments and PDF reports.
+- Retired assessment, PDF and tracker APIs return a generic 404 without accessing data.
 - `/api/files`, `/api/files/[id]`: uploads and authenticated downloads.
 - `/api/guide`: optional River Guide.
 
-Data persists in MongoDB using the official Node.js driver. Five collections preserve the original tables: `crew_records`, `guide_usage`, `growth_workspace`, `c310_models`, and `c310_assessments`. JSON content is stored as BSON objects; original IDs are retained as both `_id` and `id`. Collection validators and indexes initialize on first access. Revision checks prevent stale saves, and evidence/energy changes use MongoDB transactions.
+Data persists in MongoDB using the official Node.js driver. Two collections store application records: `crew_records` and `guide_usage`. JSON content is stored as BSON objects; original IDs are retained as both `_id` and `id`. Collection validators and indexes initialize on first access. Revision checks prevent stale saves, and evidence/energy changes use MongoDB transactions.
 
 Private uploads persist in MongoDB GridFS (`uploads.files` / `uploads.chunks`) under their original `jaguar/<UUID>` keys. Downloads retain the existing authenticated access checks and stream from GridFS. The old SQLite database and uploads are preserved as migration sources and are no longer used by the running app.
 
 ## MongoDB migration
 
-The source ZIP excludes live hosted records and uploads. The local SQLite database currently contains one notification and one initial scoring model, with no growth records, assessments, guide usage or uploads. This is not a backup of the live site.
+The source ZIP excludes live hosted records and uploads. The local SQLite database currently contains the remaining crew notification, with no guide usage or uploads. This is not a backup of the live site.
 
-A complete hosted migration requires a full D1 SQLite export (or untruncated five-table JSON export), every referenced R2 file, and authoritative table counts/file inventory from the hosting administrator or Sites support. The original chat verified that its available interface truncates large JSON records and cannot export R2 files; it did not create a complete export.
+A complete hosted migration requires a full D1 SQLite export (or untruncated two-table JSON export), every referenced R2 file, and authoritative table counts/file inventory from the hosting administrator or Sites support. The original chat verified that its available interface truncates large JSON records and cannot export R2 files; it did not create a complete export.
 
 With the source placed privately under `data/`, run:
 
@@ -55,7 +54,7 @@ npm run db:migrate -- --source data/export.sqlite --uploads data/export-uploads 
 npm run db:migrate -- --source data/export.sqlite --uploads data/export-uploads --apply
 ```
 
-The default source is `data/jaguar.sqlite`, with files in `data/uploads`. Both storage layouts are accepted: `uploads/jaguar/<UUID>` (export) and `uploads/<UUID>` (legacy local storage). JSON sources must contain all five table names with full row arrays. The migration validates fields, IDs, revisions, JSON and MongoDB document sizes, checks every upload's size/SHA-256, backs up SQLite and writes records/inventory into an ignored timestamped `data/migration/` folder. Review counts against the provider's inventory before applying; the script cannot detect records that a provider omitted from its export.
+The default source is `data/jaguar.sqlite`, with files in `data/uploads`. Both storage layouts are accepted: `uploads/jaguar/<UUID>` (export) and `uploads/<UUID>` (legacy local storage). JSON sources must contain both application table names with full row arrays. The migration validates fields, IDs, revisions, JSON and MongoDB document sizes, checks every upload's size/SHA-256, backs up SQLite and writes records/inventory into an ignored timestamped `data/migration/` folder. Review counts against the provider's inventory before applying; the script cannot detect records that a provider omitted from its export.
 
 Apply inserts missing records/files, skips exact matches, stops on destination conflicts, and verifies every imported record and file. Original data is never deleted or overwritten. An interrupted import can leave a subset inserted; correct the issue and rerun the same export. Keep the original site unchanged during the final export and import.
 
@@ -79,4 +78,16 @@ Follow [AUTH_SETUP.md](AUTH_SETUP.md) to register the Google OAuth callback and 
 
 The parent ZIP is untouched. Active scripts use `next dev`, `next build` and `next start`. Vinext, Workers, D1 and R2 are no longer runtime dependencies. Historical Sites/Vite configs and Worker test scripts remain as reference and are excluded from the active TypeScript project. Use npm and `package-lock.json`; the original pnpm lockfile describes the old runtime. Radix overrides keep its component versions aligned with the archived 1.6.7 release because newer registry entries referenced unavailable packages. See `README-sites-original.md` and `JAGUAR_HANDOVER.md` for historical hosting details and business rules.
 
-`node scripts/check-next.mjs` runs an isolated development server and checks sign-in, role restrictions, shared records, assessments and upload privacy. After a build, `node scripts/check-next.mjs --production` verifies anonymous access and development sign-in are blocked in production. Both checks start an isolated local MongoDB replica set and never use Atlas. The development check requires the existing Next.js dev server to be stopped first because Next.js shares its development lock. `npm test` also starts an isolated replica set; its first run downloads MongoDB's official test binary.
+`node scripts/check-next.mjs` runs an isolated development server and checks sign-in, role restrictions, shared records, upload privacy. After a build, `node scripts/check-next.mjs --production` verifies anonymous access and development sign-in are blocked in production. Both checks start an isolated local MongoDB replica set and never use Atlas. The development check requires the existing Next.js dev server to be stopped first because Next.js shares its development lock. `npm test` also starts an isolated replica set; its first run downloads MongoDB's official test binary.
+
+## Local review
+
+The project stores crew records and guide usage. Evidence reviews use decision, written feedback and verification. Unknown review fields are rejected. Legacy assessment implementations, collections and local assessment data have been removed. Legacy assessment data has also been removed from the configured MongoDB database. The older deployed application can recreate it until the cleaned source is deployed.
+
+For a disposable local preview with synthetic tasks and evidence, run:
+
+```powershell
+node --use-system-ca scripts/local-preview.mjs
+```
+
+Open http://127.0.0.1:3100/signin-with-chatgpt and choose Owner, Team Lead or Rider. This preview cannot connect to Atlas or OpenAI. Its data is discarded when stopped.

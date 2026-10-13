@@ -9,10 +9,8 @@ import { applicationCollections } from "../db/collections.mjs";
 
 const required = {
  crew_records:["id","kind","author","data","created_at","updated_at","revision"],
- guide_usage:["id","author","day","used"],
- growth_workspace:["id","data","revision","updated_by","updated_at"],
- c310_models:["id","data","created_at"],
- c310_assessments:["id","rider","data","revision","created_at","updated_at"]
+ guide_usage:["id","author","day","used"]
+
 };
 export function canonical(value) {
  if(Array.isArray(value))return "["+value.map(canonical).join(",")+"]";

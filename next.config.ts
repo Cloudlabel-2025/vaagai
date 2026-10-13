@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Allow isolated preview/build checks alongside the normal development server.
+  distDir: process.env.JAGUAR_BUILD_DIR || ".next",
 };
 
 export default nextConfig;

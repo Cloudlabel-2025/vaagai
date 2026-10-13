@@ -1,0 +1,55 @@
+.app-shell[data-view="community"] .workspace::before { height:980px; background:linear-gradient(180deg,#0b242226 0%,#0b24220a 30%,#0b242275 65%,#0b2422 97%),linear-gradient(90deg,#0b242285,transparent 73%),url('/crew-community-camp.webp') center top / cover; }
+.community-intro { min-height:410px; padding:20px 0 35px; }
+.community-kicker { display:flex; align-items:center; gap:8px; color:#d3debf; font-size:10px; font-weight:700; letter-spacing:1.6px; }
+.community-intro h1 { font-size:clamp(35px,3.7vw,54px); line-height:1.15; letter-spacing:-1.6px; color:#f1f5e8; margin:22px 0 19px; text-shadow:0 2px 24px #092822; }
+.community-intro p { font-size:16px; line-height:1.85; color:#d3e1d5; margin:0 0 24px; }
+.community-audience { display:inline-flex; align-items:center; gap:8px; font-size:11px; color:#d6e2c8; padding:9px 12px; border:1px solid #c2dab02e; border-radius:7px; background:#10312c80; }
+.community-layout { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(240px,.8fr); gap:26px; align-items:start; }
+.community-main { min-width:0; }
+.community-composer { padding:24px; background:#10312cf2; border:1px solid #bedacb36; border-radius:14px; }
+.community-composer > header, .community-post > header { display:flex; gap:12px; align-items:flex-start; }
+.community-composer h2 { font-size:20px; line-height:1.5; letter-spacing:-.4px; margin:6px 0 0; }
+.community-avatar { display:grid; place-items:center; width:39px; height:39px; flex-shrink:0; color:#dfebcb; background:#b5d29b22; border:1px solid #b5d29b24; border-radius:50%; font-size:12px; font-weight:650; }
+.community-draft-label { display:block; font-size:12px; color:#bfd3bd; margin:20px 0 8px; }
+.app-shell[data-view="community"] .community-composer textarea { display:block; width:100%; min-height:136px; padding:15px; border:1px solid #b6d0b438; border-radius:9px; resize:vertical; color:#e8f0e1; background:#0a2522a8; font-size:14px; line-height:1.8; }
+.community-composer textarea::placeholder { color:#a7bfb0; }
+.community-writing-prompts { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 20px; }
+.community-writing-prompts button { font-size:10px; min-height:30px; padding:6px 9px; }
+.community-composer footer { display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between; }
+.community-composer footer > span { color:#b7cdbb; font-size:10px; }
+.community-composer footer button { font-size:12px; }
+.community-feed-heading { display:flex; align-items:center; justify-content:space-between; gap:15px; margin:32px 0 17px; }
+.community-feed-heading h2 { margin:0; font-size:23px; letter-spacing:-.5px; line-height:1.45; }
+.community-feed-heading > span { font-size:11px; color:#bed2bf; white-space:nowrap; }
+.community-filters { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:19px; }
+.community-filters button { font-size:12px; }
+.app-shell[data-view="community"] .community-filters button.selected { background:#c0d6a7; color:#173b2b; border-color:#c0d6a7; }
+.community-conversations { display:grid; gap:18px; }
+.community-post { min-width:0; padding:24px; background:#10312cf2; border:1px solid #bedacb26; border-radius:14px; }
+.community-post h3 { margin:0; font-size:14px; font-weight:650; line-height:1.6; }
+.community-post time { display:block; font-size:10px; color:#aec8b8; margin-top:4px; line-height:1.65; }
+.community-own-post { margin-left:auto; font-size:10px; color:#ceddb8; padding:5px 8px; background:#bdd7a217; border-radius:6px; white-space:nowrap; }
+.community-message { color:#d8e6d7; font-size:14px; line-height:1.9; white-space:pre-line; overflow-wrap:anywhere; margin:20px 0; }
+.community-post footer { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:16px; border-top:1px solid #bedacb24; }
+.community-post footer > span { display:flex; align-items:center; gap:6px; color:#b8d0b8; font-size:11px; }
+.community-post footer button { font-size:12px; }
+.community-replies { padding:17px 0 0 19px; margin:0 0 18px 18px; border-left:1px solid #bad3a83d; }
+.community-reply { display:flex; gap:10px; margin-bottom:20px; }
+.community-reply > div { min-width:0; }
+.community-reply .community-avatar { width:29px; height:29px; font-size:10px; }
+.community-reply strong { font-size:12px; font-weight:650; }
+.community-reply p { color:#c9dcc9; font-size:13px; line-height:1.85; white-space:pre-line; overflow-wrap:anywhere; margin:10px 0 0; }
+.community-camp-notes { padding:25px; background:#11332bda; border-left:1px solid #c3dbc640; }
+.community-camp-notes h2 { font-size:24px; line-height:1.45; letter-spacing:-.5px; margin:15px 0 28px; }
+.community-camp-notes > div { margin-bottom:23px; }
+.community-camp-notes svg { color:#c5dcb5; }
+.community-camp-notes h3 { font-size:13px; line-height:1.6; font-weight:650; margin:12px 0 6px; }
+.community-camp-notes p { color:#bdd3bd; font-size:12px; line-height:1.9; margin:0; }
+.community-huddle-note { border-top:1px solid #bedacb24; padding-top:20px; }
+.community-huddle-note button { font-size:11px; margin-top:15px; }
+.community-camp-notes > small { display:block; color:#aac5b4; font-size:10px; line-height:1.85; border-top:1px solid #bedacb24; padding-top:17px; }
+.community-empty { background:#10312ce8; border:1px solid #bedacb26; border-radius:14px; padding:30px; color:#bfd3bc; }
+.community-empty h3 { color:#e9f0df; font-size:21px; line-height:1.5; margin:17px 0 10px; }
+.community-empty p { font-size:14px; line-height:1.85; margin:0 0 14px; }
+@media(max-width:1050px) { .community-layout { grid-template-columns:1fr; } .community-camp-notes { max-width:none; } .community-intro { min-height:390px; } }
+@media(max-width:760px) { .app-shell[data-view="community"] .workspace::before { height:900px; background-position:82% top; background-size:auto 900px; } .community-intro { min-height:390px; padding-top:7px; } .community-intro h1 { font-size:36px; letter-spacing:-1px; } .community-intro p { font-size:14px; } .community-composer,.community-post { padding:19px; } .community-composer h2 { font-size:18px; } .community-composer footer { align-items:flex-start; flex-direction:column; } .community-composer footer button { align-self:flex-end; } .community-own-post { display:none; } .community-feed-heading h2 { font-size:21px; } .community-replies { margin-left:5px; padding-left:12px; } }

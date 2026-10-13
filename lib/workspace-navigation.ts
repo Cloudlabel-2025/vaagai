@@ -1,6 +1,6 @@
 export const workspaceSections = [
   "overview", "onboarding", "project", "tasks", "meetings", "community",
-  "evidence", "raid", "c310", "growth", "control", "guide",
+  "evidence", "raid", "control", "guide",
 ] as const;
 export type WorkspaceView = typeof workspaceSections[number];
 export function workspacePath(view: WorkspaceView) { return `/${view}`; }

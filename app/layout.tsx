@@ -2,6 +2,15 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./project.css";
 import "./navigation.css";
+import "./expedition.css";
+import "./river-world.css";
+import "./departure-camp.css";
+import "./mission-briefing.css";
+import "./paddle-plan.css";
+import "./crew-huddles.css";
+import "./crew-community.css";
+import "./journey-evidence.css";
+import "./currents-rocks.css";
 
 export const metadata: Metadata = {
   title: "Vaagai · Jaguar Crew",

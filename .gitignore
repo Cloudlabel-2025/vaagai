@@ -15,6 +15,7 @@
 
 # next.js
 /.next/
+/.next-expedition-*/
 /.vinext/
 /out/
 
@@ -47,3 +48,4 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+/.next-*/

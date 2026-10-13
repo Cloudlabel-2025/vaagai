@@ -8,7 +8,6 @@ One crew starts on 5 October 2026. Lavanya Balaji is Project Lead; Premothan V i
 - Boat Riders confirm completion of ten checking days once. Individual daily dates or evidence are unnecessary for this beta.
 - Community posts/replies, tasks, RAID entries, meetings and evidence history are shared database records, not device-local data.
 - Evidence accepts a file up to 10 MB or an HTTPS link. Files use private object storage; download checks membership and whether a file has been submitted. Resubmissions preserve versions. Leads review the latest version against expected/actual state and give visible feedback. Only lead acceptance changes the task to Accepted.
-- Mentor 3C observations are practice feedback (0–5), not the weighted Employable Skill Matrix or certification. Ownership is independent.
 - PM meetings use join/recording links and saved actions; Teams integration is deferred. Premothan can nominate the weekly admin.
 - Crew settings let Lavanya add the Jira project URL and pause River Guide. Jira API synchronisation is not enabled.
 - Bell notifications include shared activity and recipient-specific assignments/reviews. Weekday 17:30 IST Jira reminders are materialised on a workspace request from 5 October; the open workspace checks every minute. These are in-app reminders, not email/push delivery while the website is closed.

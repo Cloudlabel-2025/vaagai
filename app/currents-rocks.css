@@ -1,0 +1,59 @@
+.app-shell[data-view="raid"] .workspace::before { height:1100px; background:linear-gradient(180deg,#0b242220 0%,#0b242210 27%,#0b242280 67%,#0b2422 97%),linear-gradient(90deg,#0b2422a0,transparent 77%),url('/currents-rocks.webp') center top / cover; }
+.currents-intro { min-height:425px; padding:17px 0 35px; }
+.currents-kicker { display:flex; align-items:center; gap:8px; font-size:10px; font-weight:700; letter-spacing:1.7px; color:#d3debf; }
+.currents-intro h1 { font-size:clamp(36px,3.6vw,53px); line-height:1.13; letter-spacing:-1.6px; margin:21px 0 17px; color:#f1f5e8; text-shadow:0 2px 24px #092822; }
+.currents-intro p { font-size:16px; line-height:1.8; color:#d3e1d5; margin:0 0 24px; }
+.currents-legend { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; margin-bottom:30px; }
+.app-shell[data-view="raid"] .currents-legend button { display:flex; align-items:center; gap:9px; padding:14px 12px; background:#10312ceb; border-color:#bedacb30; text-align:left; min-width:0; }
+.app-shell[data-view="raid"] .currents-legend button.selected { border-color:#c3d9a8; background:#254536; }
+.currents-legend svg { flex-shrink:0; color:#cee0b9; }
+.currents-legend strong { display:block; color:#e0ebd2; font-size:11px; line-height:1.5; font-weight:650; }
+.currents-legend small { display:block; font-size:9px; line-height:1.7; color:#adc9b7; margin-top:4px; }
+.currents-type-count { margin-left:auto; color:#d2e1b9; font-size:13px; }
+.currents-log-heading { display:flex; justify-content:space-between; align-items:flex-end; gap:18px; margin-bottom:22px; }
+.currents-log-heading h2 { font-size:23px; line-height:1.45; letter-spacing:-.5px; margin:9px 0 0; }
+.currents-log-heading > span { white-space:nowrap; color:#c0d6c2; font-size:11px; padding-bottom:5px; }
+.currents-layout { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(240px,.8fr); gap:26px; align-items:start; }
+.currents-records { min-width:0; }
+.currents-filters { display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px; margin-bottom:20px; }
+.currents-filters > div { display:flex; flex-wrap:wrap; gap:6px; }
+.currents-filters button { font-size:11px; padding:8px 10px; }
+.app-shell[data-view="raid"] .currents-filters button.selected { background:#c0d6a7; color:#173b2b; border-color:#c0d6a7; }
+.currents-filters label { display:grid; gap:5px; color:#bdd1bc; font-size:10px; margin-left:auto; }
+.currents-filters select { color:#e1edda; background:#12392f; border:1px solid #bdd5a83b; border-radius:8px; padding:9px; min-height:38px; font-size:11px; max-width:100%; }
+.currents-entries { display:grid; gap:22px; }
+.currents-entry { min-width:0; padding:24px; border:1px solid #bedacb2e; border-radius:14px; background:#10312cf2; }
+.currents-entry header { display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap; }
+.currents-entry header > div { flex:1; min-width:140px; }
+.currents-entry-icon { display:grid; place-items:center; width:42px; height:42px; background:#bdd7a21a; border-radius:10px; color:#d2e0b8; flex-shrink:0; }
+.currents-record-type { color:#bfd2b7; font-size:10px; line-height:1.7; }
+.currents-entry h3 { font-size:22px; line-height:1.45; letter-spacing:-.5px; margin:7px 0 0; overflow-wrap:anywhere; }
+.currents-status { color:#dfd4b8; font-size:10px; background:#b9a96f1a; padding:6px 9px; border-radius:6px; }
+.currents-status.resolved { color:#d8eac4; background:#9fbd7025; }
+.currents-impact { margin:24px 0 20px; }
+.currents-entry h4 { font-size:12px; color:#d5e2c1; font-weight:650; margin:0 0 10px; }
+.currents-entry p { white-space:pre-line; overflow-wrap:anywhere; color:#ccddd0; font-size:14px; line-height:1.85; margin:0; }
+.currents-facts { display:grid; grid-template-columns:1fr 1.3fr; gap:17px; margin:0; padding:17px 0; border-block:1px solid #bedacb24; }
+.currents-facts dt { color:#abc8b1; font-size:10px; margin-bottom:6px; }
+.currents-facts dd { color:#e0ebd5; font-size:12px; line-height:1.8; margin:0; overflow-wrap:anywhere; }
+.currents-facts small { display:block; color:#e0c696; font-size:10px; margin-top:3px; }
+.currents-response { padding:16px; background:#bdd8a408; border:1px solid #bdd8a426; border-radius:9px; margin-top:18px; }
+.currents-response p { font-size:13px; }
+.currents-entry footer { display:flex; flex-wrap:wrap; align-items:center; gap:14px; margin-top:19px; }
+.currents-entry footer:empty { display:none; }
+.currents-entry footer a { display:inline-flex; align-items:center; gap:6px; color:#d1e1b8; font-size:12px; text-underline-offset:4px; }
+.currents-entry footer button { margin-left:auto; font-size:12px; }
+.currents-field-notes { padding:25px; border-left:1px solid #c3dbc640; background:#11332bda; }
+.currents-field-notes h2 { font-size:24px; line-height:1.45; letter-spacing:-.5px; margin:15px 0 26px; }
+.currents-field-notes ol { list-style:none; counter-reset:obstacle; margin:0; padding:0; }
+.currents-field-notes li { position:relative; padding:0 0 22px 30px; counter-increment:obstacle; }
+.currents-field-notes li::before { content:counter(obstacle,decimal-leading-zero); position:absolute; left:0; top:3px; color:#b4cc97; font-size:11px; }
+.currents-field-notes strong { font-size:13px; color:#e2ebd7; }
+.currents-field-notes p { font-size:12px; line-height:1.85; color:#bdd3bd; margin:6px 0 0; }
+.currents-field-notes small { display:block; font-size:10px; line-height:1.85; color:#adc6b3; border-top:1px solid #bedacb24; padding-top:18px; }
+.currents-empty { padding:30px; background:#10312ce8; border:1px solid #bedacb26; border-radius:14px; color:#bdd3bd; }
+.currents-empty h3 { color:#e9f0df; font-size:21px; line-height:1.5; margin:17px 0 10px; }
+.currents-empty p { font-size:14px; line-height:1.85; margin:0 0 20px; }
+@media(max-width:1200px) { .currents-legend { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:1050px) { .currents-layout { grid-template-columns:1fr; } }
+@media(max-width:760px) { .app-shell[data-view="raid"] .workspace::before { height:1050px; background-size:auto 1050px; background-position:66% top; } .currents-intro { min-height:390px; padding-top:7px; } .currents-intro h1 { font-size:36px; letter-spacing:-1px; } .currents-intro p { font-size:14px; } .currents-legend { grid-template-columns:1fr 1fr; } .currents-log-heading { flex-direction:column; align-items:flex-start; gap:10px; } .currents-log-heading h2 { font-size:21px; } .currents-filters label { margin-left:0; } .currents-entry { padding:19px; } .currents-entry h3 { font-size:20px; } .currents-facts { grid-template-columns:1fr; } .currents-entry footer button { margin-left:0; } }

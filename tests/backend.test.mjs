@@ -54,48 +54,36 @@ test("Mongo revisions, transactional evidence, concurrent energy and private upl
  assert.equal(await new Response((await bucket.get(key)).body).text(),"private evidence");
  await assert.rejects(bucket.get("../../outside"));await bucket.delete(key);assert.equal(await bucket.get(key),null);
 });
-test("Complete migration preserves all five tables, nested data, files and revisions; reruns are safe",async()=>{
+test("Migration preserves crew records, guide usage, files and revisions; reruns are safe",async()=>{
  const directory=mkdtempSync(path.join(tmpdir(),"jaguar-migration-"));
  const key="jaguar/00000000-0000-4000-8000-000000000002",now="2026-01-01T00:00:00Z";
  try{
   mkdirSync(path.join(directory,"jaguar"));writeFileSync(path.join(directory,key),"old evidence");
   const source={
    crew_records:[{id:"old-upload",kind:"upload",author:"rider",data:JSON.stringify({key,size:12,type:"text/plain",name:"evidence.txt"}),revision:4,created_at:now,updated_at:now}],
-   guide_usage:[{id:"old-quota",author:"rider",day:"2026-01-01",used:7}],
-   growth_workspace:[{id:"old-growth",data:JSON.stringify({reviewHistory:[{grades:[1,2,3]}]}),revision:9,updated_by:"lead",updated_at:now}],
-   c310_models:[{id:"old-model",data:JSON.stringify({version:"old",factors:[{weight:10}]}),created_at:now}],
-   c310_assessments:[{id:"old-assessment",rider:"rider",data:JSON.stringify({reports:[{id:"report",ratings:[1,null,5]}]}),revision:5,created_at:now,updated_at:now}]
+   guide_usage:[{id:"old-quota",author:"rider",day:"2026-01-01",used:7}]
   };
   assert.throws(()=>normalizeTables({crew_records:[]}),/Missing complete table/);
   const tables=normalizeTables(source),files=await inspectFiles(tables,directory),db=await getMongoDatabase();
   const first=await importTables(db,tables,files);assert.equal(first.verified,true);
   for(const name of Object.keys(tables))assert.equal(canonical(await db.collection(name).findOne({_id:tables[name][0]._id})),canonical(tables[name][0]));
   const rerun=await importTables(db,tables,files);for(const table of Object.values(rerun.tables)){assert.equal(table.inserted,0);assert.equal(table.skipped,1);}
-  const conflict=structuredClone(tables);conflict.growth_workspace[0].revision=10;
+  const conflict=structuredClone(tables);conflict.crew_records[0].revision=10;
   await assert.rejects(importTables(db,conflict,files),/Destination record conflict/);
   writeFileSync(path.join(directory,key),"bad");await assert.rejects(inspectFiles(tables,directory),/incorrect upload size/);
  }finally{rmSync(directory,{recursive:true,force:true});}
 });
-test("REST handlers use MongoDB for growth, assessments, uploads and role restrictions",async()=>{
+test("REST handlers preserve uploads and roles",async()=>{
  const server=load("lib/crew-server.ts"),original=server.identity;
  const owner={id:"owner",email:"lavanyabalaji123@gmail.com",name:"Lavanya",role:"owner"};
  const rider={id:"rider",email:"sasiabinesh292@gmail.com",name:"Abinesh",role:"learner"};
  const post=(url,data)=>new Request("http://localhost"+url,{method:"POST",headers:{"content-type":"application/json",origin:"http://localhost"},body:JSON.stringify(data)});
  try{
   server.identity=async()=>owner;
-  const growth=load("app/api/growth/route.ts"),crew=load("app/api/crew/route.ts"),c310=load("app/api/c310/route.ts");
-  const initial=await (await growth.GET()).json();assert.equal(initial.revision,0);
-  const save=await growth.POST(post("/api/growth",{op:"settings",revision:0,data:initial.state.settings}));
-  assert.equal(save.status,200,await save.clone().text());
-  assert.equal((await growth.POST(post("/api/growth",{op:"settings",revision:0,data:initial.state.settings}))).status,409);
+  const crew=load("app/api/crew/route.ts");
   assert.equal((await crew.POST(post("/api/crew",{op:"readiness",confirmed:true}))).status,200);
   assert.equal((await crew.POST(post("/api/crew",{op:"receipt"}))).status,200);
-  server.identity=async()=>rider;assert.equal((await growth.GET()).status,403);
-  const created=await c310.POST(post("/api/c310",{op:"new"}));assert.equal(created.status,200,await created.clone().text());
-  const assessment=(await created.json()).record;
-  const draft=await c310.POST(post("/api/c310",{op:"draft",id:assessment.assessment.id,revision:1,answers:assessment.assessment.answers}));
-  assert.equal(draft.status,200,await draft.clone().text());
-  assert.equal((await c310.POST(post("/api/c310",{op:"draft",id:assessment.assessment.id,revision:1,answers:assessment.assessment.answers}))).status,409);
+  server.identity=async()=>rider;
   const files=load("app/api/files/route.ts"),form=new FormData();form.set("file",new File(["REST evidence"],"evidence.txt",{type:"text/plain"}));
   const uploaded=await files.POST(new Request("http://localhost/api/files",{method:"POST",headers:{origin:"http://localhost"},body:form}));
   assert.equal(uploaded.status,200,await uploaded.clone().text());
@@ -135,11 +123,7 @@ test("Google admission and owner administration preserve disabled access and cur
   assert.equal((await approvedIdentity("new@example.com")).role, "learner");
   await saveApprovedUser(owner, { ...invite, role: "cohort_leader" });
   assert.equal((await approvedIdentity("new@example.com")).role, "cohort_leader");
-  const { canReview } = load("lib/c310-model.ts"), { activeRoster } = load("lib/access.ts");
-  const leader = await approvedIdentity("mechpremothan@gmail.com");
-  assert.equal(canReview(leader, "new@example.com", await activeRoster()), false);
   await saveApprovedUser(owner, invite);
-  assert.equal(canReview(leader, "new@example.com", await activeRoster()), true);
   await saveApprovedUser(owner, { email: "sasiabinesh292@gmail.com", name: "Abinesh", role: "learner", active: false });
   await approvedUsers();
   assert.equal(await approvedIdentity("sasiabinesh292@gmail.com"), null, "Bootstrap must never re-enable a disabled crew member");
@@ -242,4 +226,34 @@ test("Google account selection distinguishes invalid accounts, required first lo
   assert.equal(await googleSignInDecision({ email, email_verified: false }), "/signin?error=InvalidGoogleAccount");
   await (await approvedUsers()).updateOne({ _id: email }, { $set: { active: false } });
   assert.equal(await googleSignInDecision({ email, email_verified: true }), "/signin?error=InvalidGoogleAccount");
+});
+
+test("Mark-free evidence rework and acceptance retain ownership, versions and stale-review protection",async()=>{
+ const server=load("lib/crew-server.ts"),original=server.identity,crew=load("app/api/crew/route.ts");
+ const owner={name:"Lavanya",email:"lavanyabalaji123@gmail.com",role:"owner"},lead={name:"Premothan",email:"mechpremothan@gmail.com",role:"cohort_leader"},rider={name:"Stephen",email:"stephan@cloudheard.org",role:"learner"};
+ const post=data=>crew.POST(new Request("http://localhost/api/crew",{method:"POST",headers:{origin:"http://localhost","content-type":"application/json"},body:JSON.stringify(data)}));
+ try {
+  server.identity=async()=>owner;
+  const task=await post({op:"task",title:"Review workflow",description:"Verify HDL",owner:rider.email,dueAt:"2026-11-01T00:00:00Z",criteria:"Reconcile counts"});assert.equal(task.status,200);
+  const taskId=(await task.json()).id;
+  server.identity=async()=>rider;
+  const submit={op:"evidence",taskId,title:"HDL evidence",summary:"Verified counts",link:"https://example.com/evidence",handoff:"Ready for lead"};
+  const first=await post(submit);assert.equal(first.status,200);const id=(await first.json()).id;
+  const review={op:"review",id,revision:1,decision:"Rework",feedback:"Resolve failed rows",validation:"Checked error report"};
+  assert.equal((await post(review)).status,403);
+  server.identity=async()=>lead;
+  for(const key of ["unexpectedField"]) assert.equal((await post({...review,[key]:3})).status,400);
+  assert.equal((await post({...review,revision:0})).status,409);
+  assert.equal((await post(review)).status,200);
+  assert.equal((await server.record(taskId)).data.status,"In progress");
+  server.identity=async()=>rider;
+  const second=await post({...submit,groupId:(await server.record(id)).data.groupId});assert.equal(second.status,200);const secondId=(await second.json()).id;
+  assert.equal((await server.record(secondId)).data.version,2);
+  server.identity=async()=>owner;
+  assert.equal((await post({...review,decision:"Accepted"})).status,409);
+  const accepted=await post({...review,id:secondId,decision:"Accepted"});assert.equal(accepted.status,200,await accepted.clone().text());
+  const stored=await server.record(secondId);assert.equal(stored.data.status,"Accepted");assert.ok(!("c1" in stored.data.review));
+  assert.equal((await server.record(taskId)).data.status,"Accepted");
+  assert.equal((await server.record(id)).data.status,"Rework");
+ }finally{server.identity=original;}
 });
