@@ -24,3 +24,11 @@
 .app-nav nav a.active { background: #ddf8f7; color: #103c47; }
 .app-nav nav a.active small { color: #426c77; }
 .app-nav nav a:not(.active):hover { background: #224a57; }
+
+.app-shell .app-nav > .manage-access-link { display: flex; align-items: center; gap: 10px; margin: 16px 5px 0; padding: 11px 12px; min-height: 44px; border: 1px solid #b8d1a633; border-radius: 8px; color: #d8e4c8; background: #ffffff05; text-decoration: none; font-size: 12px; font-weight: 600; transition: background .18s, border-color .18s, color .18s, box-shadow .18s; }
+.manage-access-link > svg { flex-shrink: 0; }
+.manage-access-arrow { margin-left: auto; transition: transform .18s; }
+.app-shell .app-nav > .manage-access-link:is(:hover, :focus-visible) { background: #d7d4a91c; border-color: #e3ce8f99; color: #ffebad; box-shadow: inset 3px 0 #dfca8b; }
+.manage-access-link:is(:hover, :focus-visible) .manage-access-arrow { transform: translateX(3px); }
+.app-shell .app-nav > .manage-access-link:focus-visible { outline: 2px solid #e3ce8f; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .app-shell .app-nav > .manage-access-link, .manage-access-arrow { transition: none; } }

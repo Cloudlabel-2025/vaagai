@@ -2,12 +2,15 @@
 import { useActionState, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { updateOwnPassword } from "./actions";
+import { useTabId } from "../../../components/tab-session";
 import styles from "./users.module.css";
 
 export default function OwnerPasswordForm() {
+  const tabId = useTabId();
   const [state, action, pending] = useActionState(updateOwnPassword, { error: "", success: false });
   const [show, setShow] = useState(false);
   return <form action={action} className={styles.form}>
+    <input type="hidden" name="tabId" value={tabId}/>
     <label>Current password<input name="currentPassword" type={show ? "text" : "password"} autoComplete="current-password" required maxLength={128}/></label>
     <label>New password<input name="password" type={show ? "text" : "password"} autoComplete="new-password" required minLength={8} maxLength={128}/></label>
     <label>Confirm new password<input name="confirmation" type={show ? "text" : "password"} autoComplete="new-password" required minLength={8} maxLength={128}/></label>

@@ -4,7 +4,7 @@ html {
   scrollbar-color: #739486 #edf3ee;
   scrollbar-gutter: stable;
 }
-html:has(.app-shell:is([data-view="overview"], [data-view="onboarding"], [data-view="project"], [data-view="tasks"], [data-view="meetings"], [data-view="community"], [data-view="evidence"], [data-view="raid"])) {
+html:has(.app-shell:is([data-view="overview"], [data-view="onboarding"], [data-view="project"], [data-view="tasks"], [data-view="meetings"], [data-view="community"], [data-view="evidence"], [data-view="raid"], [data-view="control"])) {
   scrollbar-color: #638675 #0b2422;
   background: #0b2422;
   color-scheme: dark;
@@ -17,20 +17,20 @@ html:has(.app-shell:is([data-view="overview"], [data-view="onboarding"], [data-v
   scrollbar-width: thin;
   scrollbar-color: #577a67 transparent;
 }
-.app-shell:is([data-view="overview"], [data-view="onboarding"], [data-view="project"], [data-view="tasks"], [data-view="meetings"], [data-view="community"], [data-view="evidence"], [data-view="raid"]) :where(.dialog, .notification-panel, .search-results, .expedition-challenge-list, .challenge-description, .challenge-objective p) {
+.app-shell:is([data-view="overview"], [data-view="onboarding"], [data-view="project"], [data-view="tasks"], [data-view="meetings"], [data-view="community"], [data-view="evidence"], [data-view="raid"], [data-view="control"]) :where(.dialog, .notification-panel, .search-results, .expedition-challenge-list, .challenge-description, .challenge-objective p) {
   scrollbar-color: #638675 transparent;
 }
 /* Fallback for browsers using WebKit scrollbar styling. */
 html::-webkit-scrollbar, .app-shell ::-webkit-scrollbar { width: 8px; height: 8px; }
 html::-webkit-scrollbar-track { background: #edf3ee; }
-html:has(.app-shell:is([data-view="overview"], [data-view="onboarding"], [data-view="project"], [data-view="tasks"], [data-view="meetings"], [data-view="community"], [data-view="evidence"], [data-view="raid"]))::-webkit-scrollbar-track { background: #0b2422; }
+html:has(.app-shell:is([data-view="overview"], [data-view="onboarding"], [data-view="project"], [data-view="tasks"], [data-view="meetings"], [data-view="community"], [data-view="evidence"], [data-view="raid"], [data-view="control"]))::-webkit-scrollbar-track { background: #0b2422; }
 .app-shell ::-webkit-scrollbar-track { background: transparent; }
 html::-webkit-scrollbar-thumb, .app-shell ::-webkit-scrollbar-thumb { background: #739486; border-radius: 8px; }
-html:has(.app-shell:is([data-view="overview"], [data-view="onboarding"], [data-view="project"], [data-view="tasks"], [data-view="meetings"], [data-view="community"], [data-view="evidence"], [data-view="raid"]))::-webkit-scrollbar-thumb,
+html:has(.app-shell:is([data-view="overview"], [data-view="onboarding"], [data-view="project"], [data-view="tasks"], [data-view="meetings"], [data-view="community"], [data-view="evidence"], [data-view="raid"], [data-view="control"]))::-webkit-scrollbar-thumb,
 .app-shell .app-nav::-webkit-scrollbar-thumb { background: #638675; }
 html::-webkit-scrollbar-button, .app-shell ::-webkit-scrollbar-button { display: none; }
 @media (forced-colors: active) {
-  html, html:has(.app-shell:is([data-view="overview"], [data-view="onboarding"], [data-view="project"], [data-view="tasks"], [data-view="meetings"], [data-view="community"], [data-view="evidence"], [data-view="raid"])), .app-shell .app-nav,
+  html, html:has(.app-shell:is([data-view="overview"], [data-view="onboarding"], [data-view="project"], [data-view="tasks"], [data-view="meetings"], [data-view="community"], [data-view="evidence"], [data-view="raid"], [data-view="control"])), .app-shell .app-nav,
   .app-shell :where(.dialog, .notification-panel, .search-results, .expedition-challenge-list, .challenge-description, .challenge-objective p) { scrollbar-color: auto; }
 }
 .app-shell {

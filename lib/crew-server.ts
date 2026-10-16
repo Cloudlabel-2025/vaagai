@@ -9,7 +9,7 @@ export class RequestError extends Error {
     constructor(message: string, public status = 400) { super(message); }
 }
 export async function identity() { const user = await getWorkspaceUser(); if (!user)
-    throw new RequestError("Sign in with your approved Google account to open Jaguar Crew.", 401); return user; }
+    throw new RequestError("Your session ended. Sign in with your approved email and password.", 401); return user; }
 export const database = getDb;
 export function bucket() { return mongoBucket; }
 export function row(r: CrewDocument): CrewRecord { return { id: r.id, kind: r.kind, author: r.author, data: r.data, createdAt: r.created_at, updatedAt: r.updated_at, revision: r.revision }; }

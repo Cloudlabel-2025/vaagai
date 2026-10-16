@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { TabProvider } from "../components/tab-session";
 import "./globals.css";
 import "./project.css";
 import "./navigation.css";
@@ -11,6 +12,7 @@ import "./crew-huddles.css";
 import "./crew-community.css";
 import "./journey-evidence.css";
 import "./currents-rocks.css";
+import "./crew-control.css";
 
 export const metadata: Metadata = {
   title: "Vaagai · Jaguar Crew",
@@ -28,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased"><TabProvider>{children}</TabProvider></body>
     </html>
   );
 }

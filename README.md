@@ -16,7 +16,7 @@ npm install
 npm run dev
 ```
 
-Open http://127.0.0.1:3000 and click Continue with Google after configuring the credentials in [AUTH_SETUP.md](AUTH_SETUP.md). For development-only testing without Google, visit `/signin-with-chatgpt` to choose a crew member. Production redirects this legacy URL to Google sign-in.
+Open http://127.0.0.1:3000/signin and use an approved email and password. Follow [AUTH_SETUP.md](AUTH_SETUP.md) for first-time setup, tab-specific login, session expiry and password recovery.
 
 Copy `.env.example` to `.env.local` and configure `MONGODB_URI` and `MONGODB_DB=vaagai_jaguar` before using the APIs. River Guide requires a separately configured server-side OpenAI key. No credentials are bundled and this migration does not connect to the provider.
 
@@ -68,11 +68,9 @@ New evidence uploads are limited to 4 MB to leave room for multipart overhead wi
 
 ## Production authentication
 
-Approved users can sign in with their email and password. Their first login with a temporary password creates a restricted 15-minute session and requires a new password at `/change-password` before any workspace/API access. Existing approvals receive the one-time temporary password `Chc@2025`; completed passwords and disabled accounts are preserved. Passwords use salted scrypt hashes. Full password sessions last eight hours, use random HTTP-only cookies, and store only token hashes in MongoDB. Password attempts are limited to ten per email per 15-minute window across server instances.
+Each tab requires its own email/password login. Refreshing that tab preserves login; new or duplicated tabs require sign-in. Credentials remain in tab-specific HTTP-only Secure cookies, while a non-secret tab selector stays in sessionStorage. Shared password/Google cookies no longer grant workspace access. Full sessions end after 30 minutes of inactivity or 8 hours, with server enforcement and automatic redirection. Background polling cannot prolong inactivity. Sign-out affects only the current tab.
 
-Signed-out visitors are redirected to `/signin` when opening the workspace. **Continue with Google** is always visible above the email/password form. It remains disabled until the entered email has completed its first password change and Google credentials are configured. Google sign-in uses Auth.js and MongoDB sessions, independently of ChatGPT. Both authentication methods check current approval and role on protected requests. Owners add users with temporary passwords, change roles, disable accounts, and reset temporary passwords at `/admin/users`. Resets revoke password and Google sessions and require another password change. There is no public signup or automatic invitation email.
-
-Follow [AUTH_SETUP.md](AUTH_SETUP.md) to register the Google OAuth callback and configure Vercel secrets. There is no public registration or automatic invitation email. Share the website link after approving the user's Google email. Development impersonation remains disabled in production, and identity headers are never trusted.
+First-time and reset logins require a new 8–128 character password within a restricted 15-minute setup session. Owners approve members and reset temporary passwords at `/admin/users`; resets revoke existing sessions. There is no public signup or email reset service. See [AUTH_SETUP.md](AUTH_SETUP.md) for the complete workflow, browser fallback behavior and validation commands. A deployment of this change signs existing users out.
 
 ## Migration
 
@@ -90,4 +88,4 @@ For a disposable local preview with synthetic tasks and evidence, run:
 node --use-system-ca scripts/local-preview.mjs
 ```
 
-Open http://127.0.0.1:3100/signin-with-chatgpt and choose Owner, Team Lead or Rider. This preview cannot connect to Atlas or OpenAI. Its data is discarded when stopped.
+Open http://127.0.0.1:3100/signin and sign in with a fixture account using its temporary password on first access. This preview cannot connect to Atlas or OpenAI. Its data is discarded when stopped.

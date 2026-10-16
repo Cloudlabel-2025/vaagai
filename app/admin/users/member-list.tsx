@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { ChevronDown, Search } from "lucide-react";
 import styles from "./users.module.css";
-type Member = { email: string; name: string; role: string; active: boolean; mustChangePassword: boolean };
-export function RoleOptions() { return <><option value="learner">Learner</option><option value="cohort_leader">Cohort leader</option><option value="owner">Owner</option></>; }
+export type Member = { email: string; name: string; role: string; active: boolean; mustChangePassword: boolean };
+export function RoleOptions() { return <><option value="learner">Learner · Boat Rider</option><option value="cohort_leader">Cohort leader · Crew Lead</option><option value="owner">Owner · Project Lead</option></>; }
 export function SaveButton({ children }: { children: React.ReactNode }) { const { pending } = useFormStatus(); return <button disabled={pending}>{pending ? "Saving…" : children}</button>; }
 export default function MemberList({ users, actorEmail, save }: { users: Member[]; actorEmail: string; save: (form: FormData) => Promise<void> }) {
   const [query, setQuery] = useState(""), [filter, setFilter] = useState("all");
@@ -13,7 +13,7 @@ export default function MemberList({ users, actorEmail, save }: { users: Member[
     <div className={styles.toolbar}><label className={styles.search}><Search size={18} aria-hidden="true"/><input aria-label="Search members by name or email" placeholder="Search name or email" value={query} onChange={event => setQuery(event.target.value)}/></label><select aria-label="Filter members" value={filter} onChange={event => setFilter(event.target.value)}><option value="all">All members</option><option value="active">Active access</option><option value="disabled">Disabled access</option><option value="setup">Password setup required</option></select></div>
     <p className={styles.resultCount} role="status">{visible.length} of {users.length} members</p>
     <div className={styles.memberList}>{visible.map(user => <details className={styles.member} key={user.email}>
-      <summary><span className={styles.avatar} aria-hidden="true">{user.name.split(/\s+/).map(part => part[0]).slice(0, 2).join("")}</span><span className={styles.identity}><strong>{user.name}{user.email === actorEmail && <small> · You</small>}</strong><span>{user.email}</span></span><span className={styles.role}>{user.role === "owner" ? "Owner" : user.role === "cohort_leader" ? "Cohort leader" : "Learner"}</span><span className={user.active ? styles.active : styles.disabled}>{user.active ? "Active" : "Disabled"}</span><ChevronDown className={styles.chevron} size={18} aria-hidden="true"/></summary>
+      <summary><span className={styles.avatar} aria-hidden="true">{user.name.split(/\s+/).map(part => part[0]).slice(0, 2).join("")}</span><span className={styles.identity}><strong>{user.name}{user.email === actorEmail && <small> · You</small>}</strong><span>{user.email}</span>{user.active && user.mustChangePassword && <small className={styles.setupNote}>Password setup required</small>}</span><span className={styles.role}>{user.role === "owner" ? "Owner" : user.role === "cohort_leader" ? "Crew Lead" : "Boat Rider"}</span><span className={user.active ? styles.active : styles.disabled}>{user.active ? "Active" : "Disabled"}</span><ChevronDown className={styles.chevron} size={18} aria-hidden="true"/></summary>
       <form action={save} className={styles.form}>
         <input type="hidden" name="email" value={user.email}/>
         <label>Name<input name="name" defaultValue={user.name} required maxLength={100}/></label>

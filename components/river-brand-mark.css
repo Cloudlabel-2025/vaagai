@@ -1,0 +1,5 @@
+.app-shell .app-nav .river-brand-mark { display: inline-flex; flex: 0 0 42px; width: 42px; height: 42px; align-items: center; justify-content: center; }
+.river-brand-mark > svg { display: block; width: 100%; height: 100%; }
+.app-shell .app-nav .brand > div { min-width: 0; }
+.app-shell .app-nav .brand strong { color: #f2f5e7; letter-spacing: -.7px; }
+.app-shell .app-nav .brand small { margin-top: 3px; font-size: 11px; line-height: 1.3; color: #b8cebd; }

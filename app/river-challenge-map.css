@@ -1,0 +1,106 @@
+/* Quiet map references over one continuous river environment. */
+.river-route-map { color: #edf3e7; min-width: 0; }
+.river-route-frame { position: relative; min-width: 0; overflow: hidden; background: transparent; border: 0; border-radius: 0; }
+.river-route-toolbar { position: absolute; inset: 16px 18px auto; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; z-index: 5; pointer-events: none; }
+.river-route-toolbar > div { padding: 10px 14px; background: #0c3028d9; color: #f1f5e8; border-radius: 5px; }
+.river-route-toolbar strong { display: block; font-size: 14px; letter-spacing: -.2px; }
+.river-route-toolbar span { display: block; margin-top: 3px; font-size: 11px; color: #d0dfd3; }
+.app-shell .river-route-toolbar button { pointer-events: auto; flex-shrink: 0; min-height: 40px; padding: 9px 13px; background: #fff9e8; color: #244638; border: 1px solid #d9d5b9; border-radius: 8px; font-size: 12px; box-shadow: 0 3px 12px #153f3226; }
+.app-shell .river-route-viewport { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; -ms-overflow-style: none; }
+.app-shell .river-route-viewport::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.river-route-viewport:focus-visible { outline: 3px solid #e9cc8b; outline-offset: -3px; }
+.river-route-world { position: relative; height: 550px; isolation: isolate; background: transparent; }
+.river-route-bank { position: absolute; width: 136px; display: grid; justify-items: center; gap: 5px; transform: translate(-50%, -25px); text-align: center; color: #eef3e6; text-shadow: 0 2px 7px #082c24; }
+.river-route-bank strong { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+.river-route-bank small { font-size: 10px; color: #d9e5d6; }
+.river-bank-reference { display: block; width: 29px; height: 30px; border-top: 1px solid #e8efd5; border-bottom: 1px solid #e8efd5; position: relative; margin-bottom: 4px; }
+.river-bank-reference::after { content: ''; position: absolute; width: 1px; inset: 0 auto 0 50%; background: #e8efd5; }
+.river-route-destination .river-bank-reference { width: 33px; height: 33px; border: 1px solid #e8efd5; border-radius: 50%; }
+.river-route-destination .river-bank-reference::after { inset: 7px; width: auto; background: transparent; border: 1px solid #e8efd5; border-radius: 50%; }
+.river-route-bank.arrived { color: #d5ecc0; }
+.app-shell button.river-route-stop { position: absolute; width: 178px; margin: 0; padding: 0; display: flex; align-items: center; flex-direction: column; gap: 13px; transform: translate(-50%, -25px); border: 0; background: transparent; color: #edf3e7; z-index: 2; border-radius: 5px; }
+.river-route-landmark { position: relative; display: grid; place-items: center; width: 66px; height: 66px; isolation: isolate; }
+.river-route-marker { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #b5dcf4; border-radius: 15px 5px 15px 5px; background: linear-gradient(145deg, #234e67f0, #102f48f0); color: #dcefff; box-shadow: 0 0 0 4px #a9d8ff12, 0 4px 12px #071f2a80; transition: transform .2s, box-shadow .2s, background .2s; }
+.river-route-marker b { display: block; font-size: 15px; font-weight: 750; letter-spacing: -.3px; }
+.river-route-stop.current .river-route-marker { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(145deg, #ffe5a1, #d5a344); border: 2px solid #fff0bd; color: #3e3219; box-shadow: 0 0 0 5px #ffdf8a30, 0 0 22px #ffd87899, inset 0 1px 4px #fff7cf; }
+.river-route-stop.current .river-route-marker b { font-size: 19px; }
+.river-route-stop.current .river-route-landmark::before { content: ''; position: absolute; inset: 0; border: 1px solid #ffe3a2a6; border-radius: 50%; z-index: -1; animation: river-current-beacon 3s ease-out infinite; }
+.river-route-stop.cleared .river-route-marker { width: 49px; height: 49px; border-radius: 50%; background: linear-gradient(145deg, #b7f0c1, #4bab82); color: #133d30; border: 2px solid #ceffda; box-shadow: 0 0 0 4px #9deabe1a, 0 0 16px #7bdfa65c; }
+.river-route-stop.blocked .river-route-marker { background: linear-gradient(145deg, #a56443, #623d31); border-color: #ffd0a2; color: #fff1d7; box-shadow: 0 0 15px #e8a56d66; }
+.river-route-stop:hover .river-route-marker { transform: translateY(-3px) scale(1.06); }
+.river-route-stop.selected:not(.current) .river-route-marker { outline: 2px solid #fff6d6; outline-offset: 5px; }
+.river-route-stop-label { width: 100%; display: grid; justify-items: center; gap: 4px; padding: 0 4px; border: 0; background: none; text-shadow: 0 1px 3px #031f1b, 0 0 9px #031f1b, 0 2px 16px #031f1b; }
+.river-route-stop.selected .river-route-stop-label { border: 0; background: none; }
+.river-route-stop-label strong { font-size: 13px; letter-spacing: .1px; color: #f4f8ee; }
+.river-route-task-title { font-size: 11px; line-height: 1.4; font-weight: 500; color: #e5efea; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.river-route-stop-label small { font-size: 9px; line-height: 1.3; font-weight: 700; letter-spacing: .2px; padding: 3px 8px; border-radius: 12px; color: #d2e9fc; background: #153a50e6; border: 1px solid #abd5ee66; text-shadow: none; }
+.river-route-stop.current .river-route-stop-label strong { color: #ffe3a2; }
+.river-route-stop.current .river-route-stop-label small { background: #ffe0a0; color: #49391c; border-color: #ffeec5; box-shadow: 0 0 10px #ffd87d40; }
+.river-route-stop.cleared .river-route-stop-label strong { color: #c7f5d4; }
+.river-route-stop.cleared .river-route-stop-label small { background: #184d3de6; color: #c6f8d5; border-color: #89d5ac80; }
+.river-route-stop.blocked .river-route-stop-label small { background: #653c2ee6; color: #ffdcc0; border-color: #eab78e; }
+@keyframes river-current-beacon { 0% { transform: scale(.9); opacity: .8; } 85%, 100% { transform: scale(1.35); opacity: 0; } }
+.river-route-boat-anchor { position: absolute; top: 0; left: 0; offset-rotate: 0deg; offset-anchor: center; width: 1px; height: 1px; transition: offset-distance 1.6s cubic-bezier(.4,0,.2,1); z-index: 3; pointer-events: none; }
+.river-route-boat { position: absolute; bottom: 48px; left: 0; transform: translateX(-50%); display: grid; justify-items: center; }
+.river-route-crew-label { white-space: nowrap; padding: 3px 9px; border-radius: 5px; background: #fff8de; border: 1px solid #ddcd9c; font-size: 10px; font-weight: 750; color: #31503b; margin-bottom: 10px; box-shadow: 0 2px 4px #133c3233; }
+.river-route-vessel { width: 56px; height: 49px; display: grid; place-items: center; color: #244638; background: #d9bc79; border: 2px solid #e9d69c; border-radius: 45% 45% 50% 50%; box-shadow: 0 5px 16px #062a2699; animation: boat-bob 4s ease-in-out infinite; }
+.river-route-wake { width: 48px; height: 6px; margin-top: 6px; border-bottom: 2px solid #eaf9e8cf; border-radius: 50%; }
+.app-shell .river-route-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 46px; min-height: 44px; padding: 0; display: grid; place-items: center; background: #fff9e8f5; border: 1px solid #d1d2ad; color: #234d3a; border-radius: 8px; box-shadow: 0 4px 12px #134a3333; z-index: 5; }
+.river-route-arrow.previous { left: 9px; }
+.river-route-arrow.next { right: 9px; }
+.app-shell .river-route-arrow:hover:not(:disabled), .app-shell .river-route-toolbar button:hover:not(:disabled) { background: #f8e9c4; border-color: #a27d33; }
+.app-shell .river-route-arrow:disabled { opacity: 0; pointer-events: none; }
+.app-shell .river-route-toolbar button:disabled { opacity: .5; }
+.river-route-footer { display: flex; justify-content: space-between; gap: 12px; padding: 9px 2px 2px; font-size: 10px; color: #b9cdc1; }
+.river-route-empty { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 12px; width: 280px; max-width: 80%; padding: 24px; text-align: center; border-radius: 10px; background: #fff9e8f5; color: #244638; }
+.river-route-empty strong { font-size: 15px; }
+.river-route-empty span { font-size: 12px; line-height: 1.5; }
+/* The artwork belongs to the workspace; map controls float over the same scene. */
+.app-shell[data-view='overview'] .workspace::before {
+  display: block;
+  height: 1150px;
+  background: linear-gradient(180deg, #0b2422b3 0%, #0b242247 15%, transparent 30%, transparent 58%, #0b2422 96%), url('/river-expedition.webp') center top / cover;
+}
+.app-shell[data-view='overview'] .workspace-content { padding-top: 12px; }
+.app-shell[data-view='overview'] .expedition-status { margin-bottom: 12px; padding-bottom: 10px; gap: 16px; }
+.app-shell[data-view='overview'] .expedition-heading { margin-bottom: 8px; align-items: center; flex-direction: row; }
+.app-shell[data-view='overview'] .expedition-heading h1 { font-size: 25px; line-height: 1.2; letter-spacing: -.7px; margin: 0 0 3px; text-shadow: none; }
+.app-shell[data-view='overview'] .expedition-heading p { font-size: 12px; margin: 0; }
+.app-shell[data-view='overview'] .expedition-heading > button { min-height: 36px; padding: 8px 12px; font-size: 12px; }
+.app-shell[data-view='overview'] .expedition-map-header { padding: 0 0 9px; border: 0; }
+.app-shell[data-view='overview'] .expedition-map-header p { margin: 0; font-size: 11px; }
+.app-shell[data-view='overview'] .expedition-view-switch button { min-height: 30px; padding: 4px 11px; font-size: 11px; }
+.app-shell[data-view='overview'] .crossing-progress { margin-top: 9px; padding: 12px 16px; backdrop-filter: none; }
+.app-shell[data-view='overview'] .crossing-progress p { margin-bottom: 0; font-size: 10px; }
+.app-shell[data-view='overview'] .expedition-metrics > button { padding: 12px 15px; backdrop-filter: none; }
+.app-shell[data-view='overview'] .expedition-metrics strong { font-size: 25px; }
+.app-shell[data-view='overview'] .expedition-metrics small { font-size: 11px; }
+.rider-vital { display: inline-flex; gap: 7px; align-items: center; }
+.rider-vital-symbols { display: inline-flex; gap: 3px; }
+.rider-vital-symbols svg { width: 15px; height: 15px; }
+.rider-vital-symbols .life-current { color: #ffa58e; fill: #ffa58e; filter: drop-shadow(0 0 3px #ff927ddb) drop-shadow(0 0 8px #ff806a99); }
+.rider-vital-symbols .life-ahead { color: #cfb9ad; }
+.rider-vital-symbols .life-used { color: #60776c; }
+.rider-vital-symbols .energy-filled { color: #ffe196; fill: #ffe196; filter: drop-shadow(0 0 3px #ffd576e6) drop-shadow(0 0 8px #ffc45d99); }
+.rider-vital-symbols .energy-empty { color: #69877a; }
+@media (max-width: 760px) {
+  .river-route-toolbar { inset: 12px 12px auto; gap: 8px; }
+  .river-route-toolbar > div { padding: 8px 10px; }
+  .river-route-toolbar strong { font-size: 12px; }
+  .river-route-toolbar span { font-size: 10px; }
+  .app-shell .river-route-toolbar button { font-size: 11px; padding: 8px 10px; }
+  .river-route-footer { font-size: 9px; line-height: 1.4; }
+  .river-route-footer > span { max-width: 50%; }
+  .river-route-footer > span:last-child { text-align: right; }
+  .app-shell[data-view='overview'] .expedition-heading h1 { font-size: 22px; }
+  .app-shell[data-view='overview'] .expedition-heading p { max-width: 210px; font-size: 11px; }
+  .app-shell[data-view='overview'] .expedition-status { gap: 8px 14px; font-size: 10px; }
+  .rider-vital-symbols svg { width: 12px; height: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .river-route-map *, .river-route-map *::before { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+.river-guide-monogram { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%; background: #d6e3bc; color: #244638; font-size: 11px; font-weight: 800; }
+.app-shell[data-view='overview'] .river-route-arrow { background: #fff9e8f5; color: #234d3a; border-color: #d1d2ad; }
+.app-shell[data-view='overview'] .river-route-arrow:hover:not(:disabled) { background: #f8e9c4; border-color: #a27d33; }

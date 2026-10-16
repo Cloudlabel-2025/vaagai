@@ -1,0 +1,16 @@
+.expedition-symbol { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; vertical-align: middle; color: var(--expedition-symbol-ink, currentColor); }
+.expedition-symbol > svg { display: block; width: 100%; height: 100%; stroke-linecap: round; stroke-linejoin: round; }
+.app-shell .app-nav nav a > .expedition-symbol { width: 30px !important; height: 30px !important; margin-right: 1px; color: var(--expedition-nav-ink); filter: drop-shadow(0 1px 2px #031b1833); }
+.expedition-symbol[data-destination='overview'] { --expedition-nav-ink: #c1debf; }
+.expedition-symbol[data-destination='onboarding'] { --expedition-nav-ink: #d6c38a; }
+.expedition-symbol[data-destination='project'] { --expedition-nav-ink: #efc58d; }
+.expedition-symbol[data-destination='tasks'] { --expedition-nav-ink: #a9daca; }
+.expedition-symbol[data-destination='meetings'] { --expedition-nav-ink: #d6d4ac; }
+.expedition-symbol[data-destination='community'] { --expedition-nav-ink: #edb485; }
+.expedition-symbol[data-destination='evidence'] { --expedition-nav-ink: #bad3a0; }
+.expedition-symbol[data-destination='raid'] { --expedition-nav-ink: #b6c9ca; }
+.expedition-symbol[data-destination='control'] { --expedition-nav-ink: #ddc691; }
+.expedition-symbol[data-destination='guide'] { --expedition-nav-ink: #c4dcb6; }
+.app-shell .app-nav nav a.active > .expedition-symbol { color: #214b36; filter: none; }
+.app-shell .app-nav nav a:not(.active):hover > .expedition-symbol { color: #f2e6bb; }
+.app-shell :is(.camp-kicker, .mission-kicker, .paddle-kicker, .huddle-kicker, .community-kicker, .evidence-kicker, .currents-kicker, .control-kicker) > .expedition-symbol { margin-right: 2px; color: #e7d5a0; }

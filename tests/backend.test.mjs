@@ -12,13 +12,24 @@ import vm from "node:vm";
 import ts from "typescript";
 
 const modules = new Map();
+// Exercise request-scoped auth without starting Next; the real database remains isolated.
+let requestCookies = new Map(), requestHeaders = new Headers();
+const cookieWrites = [];
+const nextHeaders = {
+  cookies: async () => ({
+    get: name => requestCookies.has(name) ? { value: requestCookies.get(name) } : undefined,
+    delete: name => requestCookies.delete(name),
+    set: (name, value, options) => { requestCookies.set(name, value); cookieWrites.push({ name, value, options }); },
+  }),
+  headers: async () => requestHeaders,
+};
 function load(relative) {
   const filename = path.resolve(relative);
   if (modules.has(filename)) return modules.get(filename).exports;
   const module = { exports: {} };
   modules.set(filename, module);
   const nativeRequire = createRequire(filename);
-  const require = id => id === "server-only" ? {} : /\.(mjs|json)$/.test(id) ? nativeRequire(id) : id.startsWith(".") ? load(existsSync(path.resolve(path.dirname(filename), id+".ts")) ? path.resolve(path.dirname(filename),id+".ts") : path.resolve(path.dirname(filename),id,"index.ts")) : nativeRequire(id);
+  const require = id => id === "server-only" ? {} : id === "next/headers" ? nextHeaders : /\.(mjs|json)$/.test(id) ? nativeRequire(id) : id.startsWith(".") ? load(existsSync(path.resolve(path.dirname(filename), id+".ts")) ? path.resolve(path.dirname(filename),id+".ts") : path.resolve(path.dirname(filename),id,"index.ts")) : nativeRequire(id);
   const source = ts.transpileModule(readFileSync(filename, "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
   vm.runInThisContext(`(function(require,module,exports){${source}\n})`, { filename })(require, module, module.exports);
   return module.exports;
@@ -256,4 +267,74 @@ test("Mark-free evidence rework and acceptance retain ownership, versions and st
   assert.equal((await server.record(taskId)).data.status,"Accepted");
   assert.equal((await server.record(id)).data.status,"Rework");
  }finally{server.identity=original;}
+});
+
+test("Tab sessions isolate login/logout, require matching cookies, and enforce idle and absolute expiry", async () => {
+  const previousMode = process.env.NODE_ENV;
+  process.env.NODE_ENV = "production";
+  const { approvedUsers, saveApprovedUser, approvedIdentity } = load("lib/access.ts");
+  const { authenticatePassword, completePasswordSetup, passwordSession } = load("lib/password-auth.ts");
+  const { setPasswordSession } = load("lib/password-cookie.ts");
+  const { getWorkspaceUser } = load("app/auth.ts");
+  const policy = load("lib/session-policy.ts");
+  const sessionRoute = load("app/api/session/route.ts");
+  const db = await getMongoDatabase();
+  const tabA = "a".repeat(32), tabB = "b".repeat(32), unknownTab = "c".repeat(32);
+  try {
+    const owner = await approvedIdentity("lavanyabalaji123@gmail.com");
+    await saveApprovedUser(owner, { email: "tab-auth@example.com", name: "Tab User", role: "learner", active: true, temporaryPassword: "TabTemporary@2026" });
+    const setup = await authenticatePassword("tab-auth@example.com", "TabTemporary@2026");
+    const fullA = await completePasswordSetup(setup.token, "TabPermanent@2026", "TabPermanent@2026");
+    const fullB = await authenticatePassword("tab-auth@example.com", "TabPermanent@2026");
+    requestCookies = new Map();
+    await setPasswordSession(fullA, tabA);
+    await setPasswordSession(fullB, tabB);
+    assert.ok(await passwordSession(fullA.token), "Signing in another tab preserves the first session");
+    const written = cookieWrites.at(-1);
+    assert.ok(written.name.startsWith("__Host-"));
+    assert.equal(written.options.httpOnly, true);
+    assert.equal(written.options.secure, true);
+    assert.equal(written.options.sameSite, "strict");
+    assert.equal(written.options.path, "/");
+    assert.equal(written.options.maxAge, 8 * 60 * 60);
+    await assert.rejects(setPasswordSession(fullA, "bad-cookie-selector"), /Open the sign-in/);
+    requestHeaders = new Headers();
+    assert.equal(await getWorkspaceUser(), null, "Shared browser cookies alone never grant access");
+    requestHeaders.set(policy.TAB_HEADER, unknownTab);
+    assert.equal(await getWorkspaceUser(), null, "A new tab has no session even with the other tabs' cookies");
+    requestHeaders.set(policy.TAB_HEADER, tabA);
+    assert.equal((await getWorkspaceUser()).email, "tab-auth@example.com");
+    requestHeaders.set(policy.TAB_HEADER, tabB);
+    assert.equal((await getWorkspaceUser()).email, "tab-auth@example.com");
+    const req = (method, tab, origin = "http://localhost") => new Request("http://localhost/api/session", { method, headers: { origin, [policy.TAB_HEADER]: tab } });
+    assert.equal((await sessionRoute.DELETE(req("DELETE", tabA, "https://untrusted.example"))).status, 403);
+    assert.equal((await sessionRoute.DELETE(req("DELETE", tabA))).status, 200);
+    assert.equal(await passwordSession(fullA.token), null);
+    assert.ok(await passwordSession(fullB.token), "Logout revokes only the selected tab");
+    assert.equal((await sessionRoute.GET(req("GET", tabA))).status, 401);
+    assert.equal((await sessionRoute.GET(req("GET", tabB))).status, 200);
+    await db.collection("password_sessions").updateOne({ email: "tab-auth@example.com" }, { $set: { idleExpires: new Date(Date.now() + 60000) } });
+    const beforePoll = await passwordSession(fullB.token);
+    await sessionRoute.GET(req("GET", tabB));
+    assert.equal((await passwordSession(fullB.token)).idleExpires.getTime(), beforePoll.idleExpires.getTime(), "Background checks cannot prolong inactivity");
+    await sessionRoute.POST(req("POST", tabB));
+    const touched = await passwordSession(fullB.token);
+    assert.ok(touched.idleExpires > beforePoll.idleExpires);
+    assert.equal(touched.expires.getTime(), beforePoll.expires.getTime(), "Activity never extends the absolute expiry");
+    await db.collection("password_sessions").updateOne({ email: "tab-auth@example.com" }, { $set: { idleExpires: new Date(0) } });
+    assert.equal(await passwordSession(fullB.token, true), null, "Activity cannot revive an idle-expired session");
+    assert.equal(await getWorkspaceUser(), null);
+    assert.equal((await sessionRoute.POST(req("POST", tabB))).status, 401);
+    const fullC = await authenticatePassword("tab-auth@example.com", "TabPermanent@2026");
+    await setPasswordSession(fullC, tabB);
+    await db.collection("password_sessions").updateOne({ email: "tab-auth@example.com", expires: { $gt: new Date() } }, { $set: { expires: new Date(0) } });
+    assert.equal(await passwordSession(fullC.token, true), null, "The 8-hour maximum is enforced by the server");
+    const fullD = await authenticatePassword("tab-auth@example.com", "TabPermanent@2026");
+    await setPasswordSession(fullD, tabB);
+    await (await approvedUsers()).updateOne({ _id: "tab-auth@example.com" }, { $set: { active: false } });
+    assert.equal(await getWorkspaceUser(), null, "Disabled users immediately lose access");
+  } finally {
+    requestCookies = new Map(); requestHeaders = new Headers();
+    if (previousMode === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = previousMode;
+  }
 });

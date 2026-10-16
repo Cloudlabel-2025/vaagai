@@ -1,4 +1,4 @@
-.app-shell[data-view="evidence"] .workspace::before { height:1000px; background:linear-gradient(180deg,#0b242220 0%,#0b242212 30%,#0b242284 66%,#0b2422 97%),linear-gradient(90deg,#0b242292,transparent 76%),url('/journey-evidence-checkpoint.webp') center top / cover; }
+.app-shell[data-view="evidence"] .workspace::before { height:1000px; background:linear-gradient(180deg,#0b242220 0%,#0b242212 30%,#0b242284 66%,#0b2422 97%),linear-gradient(90deg,#0b242292,transparent 76%),url('/journey-evidence-field-journal.webp') center top / cover; }
 .evidence-intro { min-height:425px; padding:17px 0 35px; }
 .evidence-kicker { display:flex; gap:8px; align-items:center; font-size:10px; font-weight:700; letter-spacing:1.7px; color:#d3debf; }
 .evidence-intro h1 { font-size:clamp(36px,3.6vw,53px); line-height:1.13; letter-spacing:-1.6px; margin:21px 0 17px; color:#f1f5e8; text-shadow:0 2px 24px #092822; }

@@ -4,23 +4,30 @@ import { getMongoDatabase } from "../db/mongodb.mjs";
 import { approvedUsers, revokeUserSessions, type ApprovedUser } from "./access";
 import { hashPassword, initialPasswordHash, verifyPassword } from "./passwords";
 import type { Identity } from "./jaguar";
+import { SESSION_MAX_SECONDS, SESSION_IDLE_SECONDS, SETUP_MAX_SECONDS } from "./session-policy";
 
 export const passwordCookie = "jaguar-password-session";
 const tokenHash = (token: string) => createHash("sha256").update(token).digest("hex");
-type PasswordSession = { _id: string; email: string; passwordVersion: number; setup: boolean; expires: Date };
-export async function passwordSession(token?: string): Promise<{ user: ApprovedUser; setup: boolean } | null> {
+type PasswordSession = { _id: string; email: string; passwordVersion: number; setup: boolean; expires: Date; idleExpires: Date };
+export async function passwordSession(token?: string, touch = false): Promise<{ user: ApprovedUser; setup: boolean; expires: Date; idleExpires: Date } | null> {
   if (!token || token.length !== 64) return null;
   const db = await getMongoDatabase();
-  const session = await db.collection<PasswordSession>("password_sessions").findOne({ _id: tokenHash(token), expires: { $gt: new Date() } });
+  const now = new Date();
+  const sessions = db.collection<PasswordSession>("password_sessions");
+  const filter = { _id: tokenHash(token), expires: { $gt: now }, idleExpires: { $gt: now } };
+  const session = touch
+    ? await sessions.findOneAndUpdate(filter, { $max: { idleExpires: new Date(now.getTime() + SESSION_IDLE_SECONDS * 1000) } }, { returnDocument: "after" })
+    : await sessions.findOne(filter);
   if (!session) return null;
   const user = await (await approvedUsers()).findOne({ _id: session.email, active: true, passwordVersion: session.passwordVersion });
-  return user ? { user, setup: session.setup } : null;
+  return user ? { user, setup: session.setup, expires: session.expires, idleExpires: session.idleExpires } : null;
 }
 export async function newPasswordSession(user: ApprovedUser, setup = user.mustChangePassword) {
-  const token = randomBytes(32).toString("hex"), lifetime = setup ? 15 * 60 : 8 * 60 * 60;
+  const token = randomBytes(32).toString("hex"), lifetime = setup ? SETUP_MAX_SECONDS : SESSION_MAX_SECONDS;
   await (await getMongoDatabase()).collection<PasswordSession>("password_sessions").insertOne({
     _id: tokenHash(token), email: user.email, passwordVersion: user.passwordVersion, setup,
     expires: new Date(Date.now() + lifetime * 1000),
+    idleExpires: new Date(Date.now() + Math.min(lifetime, SESSION_IDLE_SECONDS) * 1000),
   });
   return { token, lifetime, setup };
 }
