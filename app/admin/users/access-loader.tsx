@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { useTabId } from "../../../components/tab-session";
+import { RiverAuthLoading } from "../../../components/river-auth";
 import { loadAccess, saveAccess } from "./actions";
 import AccessView from "./access-view";
 
@@ -21,7 +22,8 @@ export default function AccessLoader() {
       await load(); setSaved(true);
     } catch { setSaved(false); setError("Could not save. Please try again."); }
   }
-  if (!data) return <main role="status">{error || "Loading crew access…"}{error && <button onClick={load}>Try again</button>}</main>;
+  if (!data && error) return <RiverAuthLoading error title="Could not load access" detail={error}><button onClick={load}>Try again</button></RiverAuthLoading>;
+  if (!data) return <RiverAuthLoading />;
   if (!data.allowed) return <main><h1>Owner access required</h1><p>Your Project Lead manages crew access.</p><a href="/overview">Return to workspace</a></main>;
   return <AccessView actor={data.actor} users={data.users} save={save} error={!!error} saved={saved} />;
 }

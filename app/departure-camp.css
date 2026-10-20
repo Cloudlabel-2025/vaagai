@@ -79,7 +79,7 @@
 .camp-field-guide h3 { font-size: 14px; margin: 0 0 4px; color: #e7eee0; }
 .camp-field-guide li p { font-size: 12px; color: #bed4c2; line-height: 1.8; margin: 0; }
 .camp-field-guide li button { width: 37px; height: 37px; padding: 7px; flex-shrink: 0; }
-.camp-tamil { font-size: 13px; line-height: 2; color: #c3d7c5; margin: 22px 0 0; border-top: 1px solid #c1decb24; padding-top: 18px; }
+.camp-guide-note { font-size: 13px; line-height: 2; color: #c3d7c5; margin: 22px 0 0; border-top: 1px solid #c1decb24; padding-top: 18px; }
 @media (max-width: 1200px) { .camp-intro { min-height: 300px; } .camp-layout { gap: 18px; grid-template-columns: minmax(0, 1.3fr) minmax(280px, .9fr); } .camp-foundations, .camp-confirmation { padding: 20px; } .camp-section-head { flex-wrap: wrap; } .camp-count { display: none; } }
 @media (max-width: 1050px) { .camp-layout { grid-template-columns: 1fr; } .camp-side { grid-template-columns: 1fr 1fr; align-items: start; } .camp-crew { grid-column: 1 / -1; } }
 @media (max-width: 760px) {
