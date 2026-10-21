@@ -1,0 +1,42 @@
+.personal-settings{max-width:960px;margin:0 auto;padding:clamp(16px,3vw,36px);color:var(--text,#183c39)}
+.personal-settings-intro{display:flex;align-items:flex-start;gap:18px;margin-bottom:30px}.personal-settings-intro>svg{margin-top:8px;flex-shrink:0}.personal-settings h1{font-size:clamp(28px,4vw,40px);line-height:1.3;margin:8px 0 12px}.personal-settings-intro p{max-width:65ch;line-height:1.7}
+.personal-settings-fields{padding:0;margin:0;border:0;min-width:0}.personal-settings-fields legend{font-weight:700;font-size:20px;margin-bottom:12px}.personal-setting-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,280px);align-items:center;gap:24px;padding:24px 0;border-bottom:1px solid #9aada777}.personal-setting-row label{font-size:17px;font-weight:700}.personal-setting-row p{font-size:14px;line-height:1.7;margin:7px 0 0;opacity:.85}.personal-setting-row select{width:100%;padding:12px;border:1px solid #708f87;border-radius:8px;color:inherit;background:var(--surface,#fffdf7);min-height:46px}.personal-settings-actions{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:28px}.personal-settings-actions button{padding:12px 18px;border-radius:8px;border:1px solid #708f87}.personal-settings-status{min-height:24px;margin-top:18px;font-size:14px}
+html[data-text-size=large] .app-shell{font-size:18px}html[data-text-size=large] .app-shell :is(p,small,label,input,textarea,select,button,li,dt,dd){font-size:max(17px,1em)!important;line-height:1.7}
+html[data-density=compact] .app-shell[data-view] .workspace-content{padding:16px}html[data-density=compact] :is(.compact-row,.audit-entry,.paddle-task,.personal-setting-row){padding-top:10px;padding-bottom:10px}html[data-density=compact] .card{padding:16px}
+html[data-contrast=high] .app-shell{--text:#091c18;--muted:#263e36}html[data-contrast=high] .workspace :is(p,small,label,dt,dd){opacity:1;color:#102d25}html[data-contrast=high] .workspace :is(button,input,select,textarea,.card){border-color:#1e493a}html[data-contrast=high] :focus-visible{outline:3px solid #004cff;outline-offset:4px}
+html[data-reduced-motion=true] *,html[data-reduced-motion=true] *::before,html[data-reduced-motion=true] *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+html:lang(ta) .app-shell,html:lang(hi) .app-shell{font-family:"Nirmala UI","Latha","Mangal",system-ui,sans-serif;line-height:1.65}html:lang(ta) .app-nav nav a,html:lang(hi) .app-nav nav a{white-space:normal;height:auto;min-height:48px}
+@media(max-width:640px){.personal-setting-row{grid-template-columns:1fr;gap:12px;padding:20px 0}.personal-settings-intro{gap:12px}.personal-settings-actions button{flex:1}.personal-settings{padding:16px}}
+
+/* River planning imagery stays visible while the form retains a quiet surface. */
+.app-shell[data-view=settings] .workspace{position:relative;isolation:isolate;background:#0b2422}
+.app-shell[data-view=settings] .workspace::before{content:"";position:absolute;inset:0 0 auto;height:1000px;z-index:-1;pointer-events:none;background:linear-gradient(90deg,#082722e6 0%,#08272299 46%,#08272226 100%),linear-gradient(0deg,#0b2422 0%,transparent 65%),url('/paddle-planning.webp') 65% top/cover no-repeat}
+.app-shell[data-view=settings] .personal-settings-intro{min-height:300px;align-items:center;margin-bottom:22px;color:#f4f8ed}
+.app-shell[data-view=settings] .personal-settings-intro>svg{align-self:center}
+.app-shell[data-view=settings] .personal-settings-intro h1{color:#f4f8ed}
+.app-shell[data-view=settings] .personal-settings-intro .overline{color:#e9cc8b}
+.app-shell[data-view=settings] .personal-settings-intro p{max-width:48ch;color:#f4f8ed;opacity:1;text-shadow:0 1px 8px #062d25}
+.app-shell[data-view=settings] .topbar{background:#0b2923f5;border-color:#a6ceba33;color:#d7eade;backdrop-filter:blur(12px)}
+.app-shell[data-view=settings] .topbar .breadcrumb{color:#b8d0c3}
+.app-shell[data-view=settings] .topbar :is(.breadcrumb strong,.icon-button){color:#f0f7ec}
+.app-shell[data-view=settings] .workspace-search{background:#153c32;border:1px solid #93baa74d;color:#d0e4d8}
+.app-shell[data-view=settings] .workspace-search input{color:#f0f7ec}
+.app-shell[data-view=settings] .workspace-search input::placeholder{color:#b8d0c3}
+.app-shell[data-view=settings] .personal-settings>form{padding:clamp(18px,3vw,32px);background:#10382ff5;color:#edf5ef;border:1px solid #a6ceba55;border-top:3px solid #d6bc7d;border-radius:12px;box-shadow:0 16px 42px #031a1833}
+.app-shell[data-view=settings] .personal-settings-fields legend{color:#e9cc8b}
+.app-shell[data-view=settings] .personal-setting-row{border-color:#b6ded433}
+.app-shell[data-view=settings] .personal-setting-row label{color:#f1f7ed}
+.app-shell[data-view=settings] .personal-setting-row p{color:#c7ddd1;opacity:1}
+.app-shell[data-view=settings] .personal-setting-row select{background:#0b2923;color:#f1f7ed;border-color:#89b5a177;color-scheme:dark}
+.app-shell[data-view=settings] .personal-settings-actions button{background:#174b3c;color:#edf5ef;border-color:#a6ceba66}
+.app-shell[data-view=settings] .personal-settings-actions button:hover{background:#225e4b}
+.app-shell[data-view=settings] .personal-settings-actions button.primary{background:#e9cc8b;color:#183f32;border-color:#e9cc8b}
+.app-shell[data-view=settings] .personal-settings-actions button.primary:hover{background:#f4dda7}
+.app-shell[data-view=settings] .personal-settings-status{color:#c7ddd1}
+.app-shell[data-view=settings] :is(.expedition-status,.workspace-footer){color:#edf5ef;border-color:#b6ded455}
+.app-shell[data-view=settings] .expedition-status-note{color:#d0e2d8}
+html[data-contrast=high] .app-shell[data-view=settings] .personal-settings>form{background:#061e18;color:#fff;border-color:#d8efdf}
+html[data-contrast=high] .app-shell[data-view=settings] .personal-settings>form :is(p,label,legend){color:#fff;opacity:1}
+html[data-contrast=high] .app-shell[data-view=settings] .personal-setting-row{border-color:#a6ceba}
+html[data-contrast=high] .app-shell[data-view=settings] .personal-setting-row select{background:#061e18;color:#fff;border-color:#d8efdf}
+@media(max-width:640px){.app-shell[data-view=settings] .personal-settings-intro{min-height:280px;gap:12px}.app-shell[data-view=settings] .workspace::before{height:850px;background-position:70% top}.app-shell[data-view=settings] .personal-settings{padding-inline:0}}

@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "../components/personal-preferences";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, Sailboat } from "lucide-react";
@@ -7,9 +8,10 @@ import { riverRoute } from "../lib/river-route";
 import "./river-challenge-map.css";
 
 type Props = { tasks: CrewRecord[]; selectedId?: string; onSelect: (id: string) => void };
-const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reducedMotion = () => document.documentElement.dataset.reducedMotion === "true";
 
 export default function RiverChallengeMap({ tasks, selectedId, onSelect }: Props) {
+    const t = useTranslation();
   const viewport = useRef<HTMLDivElement>(null);
   const previousStop = useRef<string | null>(null);
   const [edges, setEdges] = useState({ start: true, end: true });
@@ -47,32 +49,32 @@ export default function RiverChallengeMap({ tasks, selectedId, onSelect }: Props
   return <div className="river-route-map">
     <div className="river-route-frame">
       <div className="river-route-toolbar">
-        <div><strong>{route.arrived ? "The far bank is yours" : "Bank to bank"}</strong><span>{tasks.length ? route.arrived ? "Every challenge cleared" : `Challenge ${route.currentIndex + 1} of ${tasks.length} · Current stop` : "Waiting for your first challenge"}</span></div>
-        <button type="button" disabled={!tasks.length} onClick={() => centerAt(boatX)}>Find crew</button>
+        <div><strong>{route.arrived ? t("The far bank is yours") : t("Bank to bank")}</strong><span>{tasks.length ? route.arrived ? t("Every challenge cleared") : t("Challenge {current} of {total} · Current stop", {current:route.currentIndex+1,total:tasks.length}) : t("Waiting for your first challenge")}</span></div>
+        <button type="button" disabled={!tasks.length} onClick={() => centerAt(boatX)}>{t("Find crew")}</button>
       </div>
-      <div ref={viewport} id="river-route-viewport" className="river-route-viewport" role="region" aria-label="River challenge route. Scroll sideways to explore all challenges." tabIndex={0} onKeyDown={event => {
+      <div ref={viewport} id="river-route-viewport" className="river-route-viewport" role="region" aria-label={t("River challenge route. Scroll sideways to explore all challenges.")} tabIndex={0} onKeyDown={event => {
         if (event.target !== event.currentTarget) return;
         if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); pan(event.key === "ArrowLeft" ? -1 : 1); }
         if (event.key === "Home" || event.key === "End") { event.preventDefault(); centerAt(event.key === "Home" ? 0 : route.width); }
       }}>
         <div className="river-route-world" style={{ width: route.width }}>
-          <div className="river-route-bank river-route-departure" style={{ left: route.points[0].x, top: route.points[0].y }}><span className="river-bank-reference" aria-hidden="true" /><strong>Departure</strong><small>Near bank</small></div>
-          <div className={`river-route-bank river-route-destination ${route.arrived ? "arrived" : ""}`} style={{ left: route.points.at(-1)?.x, top: route.points.at(-1)?.y }}><span className="river-bank-reference" aria-hidden="true" /><strong>Destination</strong><small>{route.arrived ? "Crossing complete" : "Far bank"}</small></div>
+          <div className="river-route-bank river-route-departure" style={{ left: route.points[0].x, top: route.points[0].y }}><span className="river-bank-reference" aria-hidden="true" /><strong>{t("Departure")}</strong><small>{t("Near bank")}</small></div>
+          <div className={`river-route-bank river-route-destination ${route.arrived ? "arrived" : ""}`} style={{ left: route.points.at(-1)?.x, top: route.points.at(-1)?.y }}><span className="river-bank-reference" aria-hidden="true" /><strong>{t("Destination")}</strong><small>{route.arrived ? t("Crossing complete") : t("Far bank")}</small></div>
           {tasks.map((task, index) => {
             const cleared = task.data.status === "Accepted", active = index === route.currentIndex, blocked = task.data.status === "Blocked";
             return <button type="button" key={task.id} className={`river-route-stop ${cleared ? "cleared" : ""} ${active ? "current" : ""} ${blocked ? "blocked" : ""} ${selectedId === task.id ? "selected" : ""}`} style={{ left: route.challenges[index].x, top: route.challenges[index].y }} aria-label={`Challenge ${index + 1}: ${task.data.title}. ${cleared ? "Cleared" : active ? `Current challenge, ${task.data.status}` : task.data.status}`} aria-current={active ? "step" : undefined} aria-pressed={selectedId === task.id} onFocus={event => { if (event.currentTarget.matches(":focus-visible")) centerAt(route.challenges[index].x); }} onClick={() => { onSelect(task.id); centerAt(route.challenges[index].x); }}>
               <span className="river-route-landmark" aria-hidden="true"><span className="river-route-marker">{cleared ? <Check size={25} strokeWidth={2.5} /> : <b>{String(index + 1).padStart(2, "0")}</b>}</span></span>
-              <span className="river-route-stop-label"><strong>Challenge {index + 1}</strong><span className="river-route-task-title">{task.data.title}</span><small>{cleared ? "Cleared" : blocked ? "Blocked" : active ? "Current challenge" : "Upcoming"}</small></span>
+              <span className="river-route-stop-label"><strong>{t("Challenge")} {index + 1}</strong><span className="river-route-task-title">{task.data.title}</span><small>{cleared ? t("Cleared") : blocked ? t("Blocked") : active ? t("Current challenge") : t("Upcoming")}</small></span>
             </button>;
           })}
-          {tasks.length > 0 && <div className="river-route-boat-anchor" style={{ offsetPath: `path('${route.path}')`, offsetDistance: `${route.boatDistance}%` }} aria-hidden="true"><div className="river-route-boat"><span className="river-route-crew-label">{route.arrived ? "Crossing complete" : "Your crew"}</span><div className="river-route-vessel"><Sailboat size={35} strokeWidth={1.7} /></div><span className="river-route-wake" /></div></div>}
+          {tasks.length > 0 && <div className="river-route-boat-anchor" style={{ offsetPath: `path('${route.path}')`, offsetDistance: `${route.boatDistance}%` }} aria-hidden="true"><div className="river-route-boat"><span className="river-route-crew-label">{route.arrived ? t("Crossing complete") : t("Your crew")}</span><div className="river-route-vessel"><Sailboat size={35} strokeWidth={1.7} /></div><span className="river-route-wake" /></div></div>}
         </div>
       </div>
-      {!tasks.length && <div className="river-route-empty"><strong>Your journey is taking shape.</strong><span>Assigned tasks will become challenges across this river.</span></div>}
-      <button type="button" className="river-route-arrow previous" aria-label="Scroll to earlier challenges" aria-controls="river-route-viewport" disabled={edges.start} onClick={() => pan(-1)}><ChevronLeft size={24} /></button>
-      <button type="button" className="river-route-arrow next" aria-label="Scroll to later challenges" aria-controls="river-route-viewport" disabled={edges.end} onClick={() => pan(1)}><ChevronRight size={24} /></button>
+      {!tasks.length && <div className="river-route-empty"><strong>{t("Your journey is taking shape.")}</strong><span>{t("Assigned tasks will become challenges across this river.")}</span></div>}
+      <button type="button" className="river-route-arrow previous" aria-label={t("Scroll to earlier challenges")} aria-controls="river-route-viewport" disabled={edges.start} onClick={() => pan(-1)}><ChevronLeft size={24} /></button>
+      <button type="button" className="river-route-arrow next" aria-label={t("Scroll to later challenges")} aria-controls="river-route-viewport" disabled={edges.end} onClick={() => pan(1)}><ChevronRight size={24} /></button>
     </div>
-    <div className="river-route-footer"><span>Select a landmark to explore its challenge</span><span>Use the arrows or swipe to explore</span></div>
-    <p className="sr-only" role="status">{tasks.length ? route.arrived ? "All challenges accepted. Your crew has reached the destination bank." : `Your crew is above Challenge ${route.currentIndex + 1}: ${current?.data.title}.` : "No challenges assigned yet."}</p>
+    <div className="river-route-footer"><span>{t("Select a landmark to explore its challenge")}</span><span>{t("Use the arrows or swipe to explore")}</span></div>
+    <p className="sr-only" role="status">{tasks.length ? route.arrived ? t("All challenges accepted. Your crew has reached the destination bank.") : t("Your crew is above Challenge {level}: {title}.", {level:route.currentIndex+1,title:current?.data.title ?? ""}) : t("No challenges assigned yet.")}</p>
   </div>;
 }

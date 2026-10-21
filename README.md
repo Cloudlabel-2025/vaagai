@@ -89,3 +89,9 @@ node --use-system-ca scripts/local-preview.mjs
 ```
 
 Open http://127.0.0.1:3100/signin and sign in with a fixture account using its temporary password on first access. This preview cannot connect to Atlas or OpenAI. Its data is discarded when stopped.
+
+## Personal settings
+
+Every signed-in role can open `/settings`. English is the default; Tamil and Hindi localize the workspace interface while user-authored records and technical identifiers retain their original content. Text size, spacing, contrast, motion and the initial All/Mine task filter are personal preferences. Save applies changes; Reset to defaults saves the original defaults, including English.
+
+Preferences persist in MongoDB `user_preferences`, keyed by application and authenticated email. They survive logout and follow the account across devices. Vaagai and Ignis retain separate preferences even when sharing a database. The authenticated `/api/preferences` GET/PUT endpoint never accepts a target user; strict field validation and revision checks prevent invalid or stale writes. A failed save preserves the form draft; Reload settings retrieves the latest saved version.

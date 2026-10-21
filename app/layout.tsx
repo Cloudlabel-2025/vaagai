@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { TabProvider } from "../components/tab-session";
 import "./globals.css";
+import "./personal-settings.css";
 import "./project.css";
 import "./navigation.css";
 import "./expedition.css";

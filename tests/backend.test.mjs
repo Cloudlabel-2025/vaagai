@@ -338,3 +338,57 @@ test("Tab sessions isolate login/logout, require matching cookies, and enforce i
     if (previousMode === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = previousMode;
   }
 });
+
+
+test("Personal settings are private, durable, validated and isolated by application", async () => {
+ const server=load("lib/crew-server.ts"), original=server.identity, api=load("app/api/preferences/route.ts");
+ const {defaultPreferences,readPreferences,savePreferences}=await import("../lib/preferences.mjs");
+ const db=await getMongoDatabase();
+ const alice={name:"Settings Alice",email:"settings-alice@example.com",role:"learner"};
+ const bob={name:"Settings Bob",email:"settings-bob@example.com",role:"cohort_leader"};
+ const put=(data,origin="http://localhost")=>api.PUT(new Request("http://localhost/api/preferences",{method:"PUT",headers:{origin,"content-type":"application/json"},body:JSON.stringify(data)}));
+ try {
+  server.identity=async()=>{throw new server.RequestError("Sign in",401);};
+  assert.equal((await api.GET()).status,401);
+  assert.equal((await put({preferences:defaultPreferences,revision:0})).status,401);
+  server.identity=async()=>alice;
+  const initial=await api.GET();assert.match(initial.headers.get("cache-control"),/no-store/);
+  assert.deepEqual(await initial.json(),{preferences:defaultPreferences,revision:0});
+  for(const language of ["ta","hi","en"]) {
+   const revision=(await (await api.GET()).json()).revision;
+   assert.equal((await put({preferences:{...defaultPreferences,language},revision})).status,200);
+   assert.equal((await (await api.GET()).json()).preferences.language,language);
+  }
+  const changed={...defaultPreferences,language:"ta",motion:"reduced",taskFilter:"Mine",textSize:"large"};
+  assert.equal((await put({preferences:changed,revision:3})).status,200);
+  assert.equal((await put({preferences:defaultPreferences,revision:3})).status,409);
+  server.identity=async()=>bob;
+  assert.deepEqual((await (await api.GET()).json()).preferences,defaultPreferences);
+  server.identity=async()=>{throw new server.RequestError("Sign in",401);};
+  assert.equal((await api.GET()).status,401);
+  server.identity=async()=>alice;
+  assert.deepEqual((await (await api.GET()).json()).preferences,changed);
+  for(const preferences of [{...changed,language:"fr"},{...changed,role:"owner"},{...changed,motion:true},null]) assert.equal((await put({preferences,revision:4})).status,400);
+  assert.equal((await put({preferences:changed,revision:4,email:bob.email})).status,400);
+  assert.equal((await put({preferences:changed,revision:4},"https://other.example")).status,403);
+  assert.equal((await api.PUT(new Request("http://localhost/api/preferences",{method:"PUT",body:"{"}))).status,400);
+  assert.equal((await put({preferences:defaultPreferences,revision:4})).status,200);
+  assert.deepEqual((await (await api.GET()).json()).preferences,defaultPreferences);
+  await savePreferences(db,"vaagai","isolation@example.com",changed,0);
+  assert.deepEqual((await readPreferences(db,"ignis","isolation@example.com")).preferences,defaultPreferences);
+  const races=await Promise.all(["ta","hi"].map(language=>savePreferences(db,"ignis","race@example.com",{...defaultPreferences,language},0)));
+  assert.equal(races.filter(Boolean).length,1);
+ } finally {server.identity=original;}
+});
+
+test("Language catalogs cover settings and workspace navigation without changing source values", () => {
+ const {translate}=load("lib/translations.ts");
+ const messages=JSON.parse(readFileSync("lib/translations.json","utf8"));
+ for(const value of Object.values(messages)){assert.ok(value.ta?.trim());assert.ok(value.hi?.trim());}
+ assert.equal(translate("Personal settings","ta"),"தனிப்பட்ட அமைப்புகள்");
+ assert.equal(translate("Personal settings","hi"),"व्यक्तिगत सेटिंग");
+ assert.equal(translate("Personal settings","en"),"Personal settings");
+ assert.equal(translate("{accepted} of {total} levels cleared.","hi",{accepted:2,total:8}),"8 में से 2 स्तर पूरे हुए।");
+ assert.equal(translate("A user-written task title","ta"),"A user-written task title");
+ for(const text of ["Language","Save preferences","Reset to defaults","Accepted","Blocked","River Map","Caldera Map"]) for(const locale of ["ta","hi"]) assert.notEqual(translate(text,locale),text);
+});

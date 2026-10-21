@@ -1,4 +1,4 @@
-import { Backpack, Binoculars, FlagTriangleRight, FlameKindling, Footprints, Kayak, Map, Mountain, ShipWheel, TentTree } from "lucide-react";
+import { Settings2, Backpack, Binoculars, FlagTriangleRight, FlameKindling, Footprints, Kayak, Map, Mountain, ShipWheel, TentTree } from "lucide-react";
 import type { WorkspaceView } from "../lib/workspace-navigation";
 import "./expedition-icon.css";
 
@@ -12,6 +12,7 @@ const symbols = {
   evidence: Footprints,
   raid: Mountain,
   control: ShipWheel,
+  settings: Settings2,
   guide: Binoculars,
 } satisfies Record<WorkspaceView, typeof Map>;
 
